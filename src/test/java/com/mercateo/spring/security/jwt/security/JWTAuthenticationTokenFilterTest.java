@@ -25,11 +25,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.Collections;
-
 import javax.servlet.FilterChain;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
+import lombok.val;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -41,137 +40,133 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 
-import lombok.val;
-
 @RunWith(MockitoJUnitRunner.class)
 public class JWTAuthenticationTokenFilterTest {
 
-    @Mock
-    private HttpServletRequest request;
+  @Mock private HttpServletRequest request;
 
-    @Mock
-    private HttpServletResponse response;
+  @Mock private HttpServletResponse response;
 
-    @Mock
-    private FilterChain chain;
+  @Mock private FilterChain chain;
 
-    @Mock
-    private AuthenticationManager authenticationManager;
+  @Mock private AuthenticationManager authenticationManager;
 
-    private JWTAuthenticationTokenFilter uut;
+  private JWTAuthenticationTokenFilter uut;
 
-    @Before
-    public void init() {
-        uut = new JWTAuthenticationTokenFilter();
-    }
+  @Before
+  public void init() {
+    uut = new JWTAuthenticationTokenFilter();
+  }
 
-    @Test
-    public void throwsWithoutToken() throws Exception {
+  @Test
+  public void throwsWithoutToken() throws Exception {
 
-        JWTAuthenticationTokenFilter spy = Mockito.spy(uut);
-        when(request.getServletPath()).thenReturn("/api");
+    JWTAuthenticationTokenFilter spy = Mockito.spy(uut);
+    when(request.getServletPath()).thenReturn("/api");
 
-        spy.doFilter(request, response, chain);
+    spy.doFilter(request, response, chain);
 
-        verify(spy, never()).attemptAuthentication(request, response);
-        verify(spy, never()).successfulAuthentication(eq(request), eq(response), eq(chain), any());
+    verify(spy, never()).attemptAuthentication(request, response);
+    verify(spy, never()).successfulAuthentication(eq(request), eq(response), eq(chain), any());
+  }
 
-    }
+  @Test
+  public void returnsWrappedToken() {
+    val tokenString = "<token>";
+    when(request.getHeader("authorization")).thenReturn("Bearer " + tokenString);
+    uut.setAuthenticationManager(authenticationManager);
+    val authentication = mock(Authentication.class);
+    when(authenticationManager.authenticate(new JWTAuthenticationToken(tokenString)))
+        .thenReturn(authentication);
 
-    @Test
-    public void returnsWrappedToken() {
-        val tokenString = "<token>";
-        when(request.getHeader("authorization")).thenReturn("Bearer " + tokenString);
-        uut.setAuthenticationManager(authenticationManager);
-        val authentication = mock(Authentication.class);
-        when(authenticationManager.authenticate(new JWTAuthenticationToken(tokenString)))
-                .thenReturn(authentication);
+    val result = uut.attemptAuthentication(request, response);
 
-        val result = uut.attemptAuthentication(request, response);
+    assertThat(result).isEqualTo(authentication);
+  }
 
-        assertThat(result).isEqualTo(authentication);
-    }
+  @Test
+  public void dontAttemptAuthenticationWithoutTokenWithAnonymousPath() throws Exception {
 
-    @Test
-    public void dontAttemptAuthenticationWithoutTokenWithAnonymousPath() throws Exception {
+    uut.addUnauthenticatedPaths(Collections.singleton("/api"));
+    JWTAuthenticationTokenFilter spy = Mockito.spy(uut);
+    when(request.getServletPath()).thenReturn("/api");
 
-        uut.addUnauthenticatedPaths(Collections.singleton("/api"));
-        JWTAuthenticationTokenFilter spy = Mockito.spy(uut);
-        when(request.getServletPath()).thenReturn("/api");
+    spy.doFilter(request, response, chain);
 
-        spy.doFilter(request, response, chain);
+    verify(spy, never()).attemptAuthentication(request, response);
+  }
 
-        verify(spy, never()).attemptAuthentication(request, response);
+  @Test
+  public void dontAttemptAuthenticationWithoutTokenWithAnonymousPathWildcard() throws Exception {
 
-    }
+    uut.addUnauthenticatedPaths(Collections.singleton("/api/*"));
+    JWTAuthenticationTokenFilter spy = Mockito.spy(uut);
+    when(request.getServletPath()).thenReturn("/api/foo");
 
-    @Test
-    public void dontAttemptAuthenticationWithoutTokenWithAnonymousPathWildcard() throws Exception {
+    spy.doFilter(request, response, chain);
 
-        uut.addUnauthenticatedPaths(Collections.singleton("/api/*"));
-        JWTAuthenticationTokenFilter spy = Mockito.spy(uut);
-        when(request.getServletPath()).thenReturn("/api/foo");
+    verify(spy, never()).attemptAuthentication(request, response);
+  }
 
-        spy.doFilter(request, response, chain);
+  @Test
+  public void callsFilterChainWithoutTokenWithAnonymousPath() throws Exception {
 
-        verify(spy, never()).attemptAuthentication(request, response);
+    uut.addUnauthenticatedPaths(Collections.singleton("/api"));
+    when(request.getServletPath()).thenReturn("/api");
 
-    }
+    uut.doFilter(request, response, chain);
 
-    @Test
-    public void callsFilterChainWithoutTokenWithAnonymousPath() throws Exception {
+    verify(chain).doFilter(request, response);
+  }
 
-        uut.addUnauthenticatedPaths(Collections.singleton("/api"));
-        when(request.getServletPath()).thenReturn("/api");
+  @Test
+  public void callsFilterChainWithoutTokenWithoutAnonymousPath() throws Exception {
 
-        uut.doFilter(request, response, chain);
+    final AuthenticationFailureHandler mockAuthenticationFailureHandler =
+        mock(AuthenticationFailureHandler.class);
+    doNothing()
+        .when(mockAuthenticationFailureHandler)
+        .onAuthenticationFailure(
+            any(HttpServletRequest.class),
+            any(HttpServletResponse.class),
+            any(AuthenticationException.class));
+    uut.setAuthenticationFailureHandler(mockAuthenticationFailureHandler);
 
-        verify(chain).doFilter(request, response);
+    uut.doFilter(request, response, chain);
 
-    }
+    verify(chain, never()).doFilter(request, response);
+    verify(mockAuthenticationFailureHandler)
+        .onAuthenticationFailure(
+            any(HttpServletRequest.class),
+            any(HttpServletResponse.class),
+            any(AuthenticationException.class));
+  }
 
-    @Test
-    public void callsFilterChainWithoutTokenWithoutAnonymousPath() throws Exception {
+  @Test
+  public void throwsWithoutTokenInSubdirectoryOfAnonymousPath() throws Exception {
 
-        final AuthenticationFailureHandler mockAuthenticationFailureHandler = mock(AuthenticationFailureHandler.class);
-        doNothing().when(mockAuthenticationFailureHandler).onAuthenticationFailure(any(HttpServletRequest.class),
-                any(HttpServletResponse.class), any(AuthenticationException.class));
-        uut.setAuthenticationFailureHandler(mockAuthenticationFailureHandler);
+    uut.addUnauthenticatedPaths(Collections.singleton("/api"));
+    JWTAuthenticationTokenFilter spy = Mockito.spy(uut);
+    when(request.getServletPath()).thenReturn("/api/foo");
 
-        uut.doFilter(request, response, chain);
+    spy.doFilter(request, response, chain);
 
-        verify(chain, never()).doFilter(request, response);
-        verify(mockAuthenticationFailureHandler).onAuthenticationFailure(any(HttpServletRequest.class),
-                        any(HttpServletResponse.class), any(AuthenticationException.class));
-    }
+    verify(spy, never()).attemptAuthentication(request, response);
+    verify(spy, never()).successfulAuthentication(eq(request), eq(response), eq(chain), any());
+  }
 
-    @Test
-    public void throwsWithoutTokenInSubdirectoryOfAnonymousPath() throws Exception {
+  @Test
+  public void callsFilterChainIfSuccessfulAuthentication() throws Exception {
+    val authentication = mock(Authentication.class);
+    uut.successfulAuthentication(request, response, chain, authentication);
 
-        uut.addUnauthenticatedPaths(Collections.singleton("/api"));
-        JWTAuthenticationTokenFilter spy = Mockito.spy(uut);
-        when(request.getServletPath()).thenReturn("/api/foo");
+    verify(chain).doFilter(request, response);
+  }
 
-        spy.doFilter(request, response, chain);
+  @Test
+  public void returnNullWithoutToken() {
+    Authentication result = uut.attemptAuthentication(request, response);
 
-        verify(spy, never()).attemptAuthentication(request, response);
-        verify(spy, never()).successfulAuthentication(eq(request), eq(response), eq(chain), any());
-
-    }
-
-    @Test
-    public void callsFilterChainIfSuccessfulAuthentication() throws Exception {
-        val authentication = mock(Authentication.class);
-        uut.successfulAuthentication(request, response, chain, authentication);
-
-        verify(chain).doFilter(request, response);
-    }
-
-    @Test
-    public void returnNullWithoutToken() {
-        Authentication result = uut.attemptAuthentication(request, response);
-
-        assertThat(result).isNull();
-    }
-
+    assertThat(result).isNull();
+  }
 }

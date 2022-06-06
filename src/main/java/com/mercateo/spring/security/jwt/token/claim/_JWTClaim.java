@@ -15,33 +15,31 @@
  */
 package com.mercateo.spring.security.jwt.token.claim;
 
-import java.util.Optional;
-
-import org.immutables.value.Value;
-
 import com.mercateo.immutables.ValueStyle;
+import java.util.Optional;
+import org.immutables.value.Value;
 
 @Value.Immutable
 @ValueStyle
 public interface _JWTClaim {
-    String name();
+  String name();
 
-    Object value();
+  Object value();
 
-    @Value.Default
-    default String issuer() {
-        return "";
-    }
+  @Value.Default
+  default String issuer() {
+    return "";
+  }
 
-    @Value.Default
-    default boolean verified() {
-        return false;
-    }
+  @Value.Default
+  default boolean verified() {
+    return false;
+  }
 
-    Optional<JWTClaim> innerClaim();
+  Optional<JWTClaim> innerClaim();
 
-    @Value.Default
-    default int depth() {
-        return 0;
-    }
+  @Value.Default
+  default int depth() {
+    return 0;
+  }
 }

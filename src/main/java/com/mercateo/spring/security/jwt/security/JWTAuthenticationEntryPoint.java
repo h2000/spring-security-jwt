@@ -17,26 +17,27 @@ package com.mercateo.spring.security.jwt.security;
 
 import java.io.IOException;
 import java.io.Serializable;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
-
-import lombok.extern.slf4j.Slf4j;
 
 @Component
 @Slf4j
 public class JWTAuthenticationEntryPoint implements AuthenticationEntryPoint, Serializable {
 
-    @Override
-    public void commence(HttpServletRequest request, HttpServletResponse response,
-            AuthenticationException authException) throws IOException {
+  @Override
+  public void commence(
+      HttpServletRequest request,
+      HttpServletResponse response,
+      AuthenticationException authException)
+      throws IOException {
 
-        final String message = String.format("unauthorized: %s %s", request.getServletPath(), request.getPathInfo());
-        log.warn(message, authException);
-        response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
-    }
+    final String message =
+        String.format("unauthorized: %s %s", request.getServletPath(), request.getPathInfo());
+    log.warn(message, authException);
+    response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
+  }
 }

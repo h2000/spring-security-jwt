@@ -22,15 +22,15 @@ import org.junit.Test;
 
 public class JWTAuthenticationTokenTest {
 
-    private JWTAuthenticationToken uut;
+  private JWTAuthenticationToken uut;
 
-    @Before
-    public void setUp()  {
-        uut = new JWTAuthenticationToken("<token>");
-    }
+  @Before
+  public void setUp() {
+    uut = new JWTAuthenticationToken("<token>");
+  }
 
-    @Test
-    public void shouldContainToken()  {
-        assertThat(uut.getToken()).isEqualTo("<token>");
-    }
+  @Test
+  public void shouldContainToken() {
+    assertThat(uut.getToken()).isEqualTo("<token>");
+  }
 }

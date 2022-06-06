@@ -17,94 +17,96 @@ package com.mercateo.spring.security.jwt.token.extractor;
 
 import static java.util.Objects.requireNonNull;
 
-import java.util.Stack;
-
 import com.auth0.jwt.interfaces.Claim;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.mercateo.spring.security.jwt.token.claim.JWTClaim;
 import com.mercateo.spring.security.jwt.token.verifier.TokenVerifier;
-
 import io.vavr.Tuple;
 import io.vavr.Tuple2;
 import io.vavr.collection.List;
 import io.vavr.collection.Set;
+import java.util.Stack;
 import lombok.val;
 
 class HierarchicalClaimsExtractor {
 
-    private final TokenProcessor tokenProcessor;
+  private final TokenProcessor tokenProcessor;
 
-    private final TokenVerifier verifier;
+  private final TokenVerifier verifier;
 
-    private final Set<String> claimNames;
+  private final Set<String> claimNames;
 
-    private final ClaimExtractor claimExtractor;
+  private final ClaimExtractor claimExtractor;
 
-    private int depth;
+  private int depth;
 
-    private int verifiedTokenCount;
+  private int verifiedTokenCount;
 
-    HierarchicalClaimsExtractor(TokenProcessor tokenProcessor, TokenVerifier verifier, Set<String> claimNames,
-            ClaimExtractor claimExtractor) {
-        this.tokenProcessor = tokenProcessor;
-        this.verifier = verifier;
-        this.claimNames = claimNames;
-        this.claimExtractor = claimExtractor;
+  HierarchicalClaimsExtractor(
+      TokenProcessor tokenProcessor,
+      TokenVerifier verifier,
+      Set<String> claimNames,
+      ClaimExtractor claimExtractor) {
+    this.tokenProcessor = tokenProcessor;
+    this.verifier = verifier;
+    this.claimNames = claimNames;
+    this.claimExtractor = claimExtractor;
 
-        depth = 0;
-        verifiedTokenCount = 0;
+    depth = 0;
+    verifiedTokenCount = 0;
+  }
+
+  List<JWTClaim> extractClaims(String tokenString) {
+    List<JWTClaim> claims = List.empty();
+
+    val stack = new Stack<String>();
+    stack.push(tokenString);
+
+    while (!stack.empty()) {
+      val token = tokenProcessor.decodeToken(stack.pop());
+      tokenProcessor.memoizePossiblyWrappedToken(token, stack::push);
+
+      boolean verified = verifyToken(token);
+      claims = claims.appendAll(extractClaims(token, verified));
+
+      depth++;
     }
 
-    List<JWTClaim> extractClaims(String tokenString) {
-        List<JWTClaim> claims = List.empty();
+    return claims;
+  }
 
-        val stack = new Stack<String>();
-        stack.push(tokenString);
+  private List<JWTClaim> extractClaims(DecodedJWT token, boolean verified) {
 
-        while (!stack.empty()) {
-            val token = tokenProcessor.decodeToken(stack.pop());
-            tokenProcessor.memoizePossiblyWrappedToken(token, stack::push);
+    return claimNames
+        .toStream()
+        .map(claimName -> Tuple.of(claimName, token.getClaim(claimName)))
+        .filter(this::containsClaim)
+        .map(
+            result ->
+                JWTClaim.builder()
+                    .name(result._1())
+                    .value(claimExtractor.extract(result._2()))
+                    .verified(verified)
+                    .issuer(requireNonNull(token.getIssuer(), "token issuer (iss) not found"))
+                    .depth(depth)
+                    .build())
+        .toList();
+  }
 
-            boolean verified = verifyToken(token);
-            claims = claims.appendAll(extractClaims(token, verified));
+  private boolean containsClaim(Tuple2<String, Claim> result) {
+    return !result._2.isNull();
+  }
 
-            depth++;
-        }
+  private boolean verifyToken(DecodedJWT token) {
+    val verified = verifier.verifyToken(token);
 
-        return claims;
+    if (verified) {
+      verifiedTokenCount++;
     }
+    return verified;
+  }
 
-    private List<JWTClaim> extractClaims(DecodedJWT token, boolean verified) {
-
-        return claimNames
-            .toStream()
-            .map(claimName -> Tuple.of(claimName, token.getClaim(claimName)))
-            .filter(this::containsClaim)
-            .map(result -> JWTClaim
-                .builder()
-                .name(result._1())
-                .value(claimExtractor.extract(result._2()))
-                .verified(verified)
-                .issuer(requireNonNull(token.getIssuer(), "token issuer (iss) not found"))
-                .depth(depth)
-                .build())
-            .toList();
-    }
-
-    private boolean containsClaim(Tuple2<String, Claim> result) {
-        return !result._2.isNull();
-    }
-
-    private boolean verifyToken(DecodedJWT token) {
-        val verified = verifier.verifyToken(token);
-
-        if (verified) {
-            verifiedTokenCount++;
-        }
-        return verified;
-    }
-
-    int getVerifiedTokenCount() {
-        return verifiedTokenCount;
-    }
+  int getVerifiedTokenCount() {
+    return verifiedTokenCount;
+  }
 }

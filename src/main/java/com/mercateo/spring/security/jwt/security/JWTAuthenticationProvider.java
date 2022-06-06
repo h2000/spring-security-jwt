@@ -15,102 +15,103 @@
  */
 package com.mercateo.spring.security.jwt.security;
 
-import java.util.*;
-import java.util.stream.Collectors;
-
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.authentication.dao.AbstractUserDetailsAuthenticationProvider;
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
-
 import com.auth0.jwt.JWT;
 import com.mercateo.spring.security.jwt.token.claim.JWTClaim;
 import com.mercateo.spring.security.jwt.token.claim.JWTClaims;
 import com.mercateo.spring.security.jwt.token.exception.InvalidTokenException;
 import com.mercateo.spring.security.jwt.token.exception.TokenException;
 import com.mercateo.spring.security.jwt.token.extractor.ValidatingHierarchicalClaimsExtractor;
-
 import io.vavr.control.Option;
+import java.util.*;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.authentication.dao.AbstractUserDetailsAuthenticationProvider;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 @Slf4j
 @AllArgsConstructor
 public class JWTAuthenticationProvider extends AbstractUserDetailsAuthenticationProvider {
 
-    private final ValidatingHierarchicalClaimsExtractor hierarchicalJWTClaimsExtractor;
+  private final ValidatingHierarchicalClaimsExtractor hierarchicalJWTClaimsExtractor;
 
-    @Override
-    public boolean supports(Class<?> authentication) {
-        return (JWTAuthenticationToken.class.isAssignableFrom(authentication));
+  @Override
+  public boolean supports(Class<?> authentication) {
+    return (JWTAuthenticationToken.class.isAssignableFrom(authentication));
+  }
+
+  @Override
+  protected void additionalAuthenticationChecks(
+      UserDetails userDetails, UsernamePasswordAuthenticationToken authentication)
+      throws AuthenticationException {
+    // intentionally left blank
+  }
+
+  @Override
+  protected UserDetails retrieveUser(
+      String username, UsernamePasswordAuthenticationToken authentication)
+      throws AuthenticationException {
+    final String tokenString = ((JWTAuthenticationToken) authentication).getToken();
+
+    final JWTClaims claims;
+    try {
+      claims = hierarchicalJWTClaimsExtractor.extractClaims(tokenString);
+    } catch (TokenException e) {
+      final String message;
+      if (e.getCause() != null && e.getCause().getMessage() != null) {
+        message = e.getCause().getMessage();
+      } else if (e.getMessage() != null) {
+        message = e.getMessage();
+      } else {
+        message = "failed to extract token";
+      }
+      throw new InvalidTokenException(message, e);
     }
 
-    @Override
-    protected void additionalAuthenticationChecks(UserDetails userDetails,
-                                                  UsernamePasswordAuthenticationToken authentication) throws AuthenticationException {
-        // intentionally left blank
-    }
+    val token = JWT.decode(tokenString);
+    val subject = token.getSubject();
+    val id = subject != null ? subject.hashCode() : 0;
+    val authorities = retrieveAuthorities(claims);
 
-    @Override
-    protected UserDetails retrieveUser(String username, UsernamePasswordAuthenticationToken authentication)
-            throws AuthenticationException {
-        final String tokenString = ((JWTAuthenticationToken) authentication).getToken();
+    return new JWTPrincipal(id, subject, tokenString, authorities, claims.claims());
+  }
 
-        final JWTClaims claims;
-        try {
-            claims = hierarchicalJWTClaimsExtractor.extractClaims(tokenString);
-        } catch (TokenException e) {
-            final String message;
-            if (e.getCause() != null && e.getCause().getMessage() != null) {
-                message = e.getCause().getMessage();
-            } else if (e.getMessage() != null) {
-                message = e.getMessage();
-            } else {
-                message = "failed to extract token";
-            }
-            throw new InvalidTokenException(message, e);
-        }
+  protected List<? extends GrantedAuthority> retrieveAuthorities(JWTClaims claims) {
+    val scopes = extractScopes(claims);
+    val roles = extractRoles(claims);
+    val all = new ArrayList<>(scopes);
+    all.addAll(roles);
+    return all.stream()
+        .map(value -> JWTAuthority.builder().authority(value).build())
+        .collect(Collectors.toList());
+  }
 
-        val token = JWT.decode(tokenString);
-        val subject = token.getSubject();
-        val id = subject != null ? subject.hashCode() : 0;
-        val authorities = retrieveAuthorities(claims);
+  private List<String> extractScopes(JWTClaims claims) {
+    return Option.of(claims.claims().get("scope"))
+        .map(JWTClaim::value)
+        .filter(Objects::nonNull)
+        .map(value -> ((String) value).split("\\s+"))
+        .map(Arrays::asList)
+        .getOrElse(Collections.EMPTY_LIST);
+  }
 
-        return new JWTPrincipal(id, subject, tokenString, authorities, claims.claims());
-    }
-
-    protected List<? extends GrantedAuthority> retrieveAuthorities(JWTClaims claims) {
-        val scopes = extractScopes(claims);
-        val roles = extractRoles(claims);
-        val all = new ArrayList<>(scopes);
-        all.addAll(roles);
-        return all.stream().map(value -> JWTAuthority.builder().authority(value).build()).collect(Collectors.toList());
-    }
-
-    private List<String> extractScopes(JWTClaims claims) {
-        return Option.of(claims
-                .claims()
-                .get("scope"))
-                .map(JWTClaim::value)
-                .filter(Objects::nonNull)
-                .map(value -> ((String) value).split("\\s+"))
-                .map(Arrays::asList)
-                .getOrElse(Collections.EMPTY_LIST);
-    }
-
-    private List<String> extractRoles(JWTClaims claims) {
-        return Option.of(claims
-                .claims()
-                .get("roles"))
-                .map(JWTClaim::value)
-                .filter(Objects::nonNull)
-                .map(container -> (Object[]) container)
-                .map(Arrays::asList)
-                .map(list -> list //
-                        .stream().map(element -> "ROLE_" + element)
-                        .map(String::toUpperCase).collect(Collectors.toList()))
-                .getOrElse(Collections.EMPTY_LIST);
-    }
+  private List<String> extractRoles(JWTClaims claims) {
+    return Option.of(claims.claims().get("roles"))
+        .map(JWTClaim::value)
+        .filter(Objects::nonNull)
+        .map(container -> (Object[]) container)
+        .map(Arrays::asList)
+        .map(
+            list ->
+                list //
+                    .stream()
+                    .map(element -> "ROLE_" + element)
+                    .map(String::toUpperCase)
+                    .collect(Collectors.toList()))
+        .getOrElse(Collections.EMPTY_LIST);
+  }
 }

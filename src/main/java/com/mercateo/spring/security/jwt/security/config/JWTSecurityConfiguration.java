@@ -15,9 +15,15 @@
  */
 package com.mercateo.spring.security.jwt.security.config;
 
+import com.mercateo.spring.security.jwt.security.JWTAuthenticationEntryPoint;
+import com.mercateo.spring.security.jwt.security.JWTAuthenticationProvider;
+import com.mercateo.spring.security.jwt.security.JWTAuthenticationSuccessHandler;
+import com.mercateo.spring.security.jwt.security.JWTAuthenticationTokenFilter;
+import com.mercateo.spring.security.jwt.token.extractor.ValidatingHierarchicalClaimsExtractor;
 import java.util.Collections;
 import java.util.Optional;
-
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -30,15 +36,6 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import com.mercateo.spring.security.jwt.security.JWTAuthenticationEntryPoint;
-import com.mercateo.spring.security.jwt.security.JWTAuthenticationProvider;
-import com.mercateo.spring.security.jwt.security.JWTAuthenticationSuccessHandler;
-import com.mercateo.spring.security.jwt.security.JWTAuthenticationTokenFilter;
-import com.mercateo.spring.security.jwt.token.extractor.ValidatingHierarchicalClaimsExtractor;
-
-import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
 @Configuration
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
@@ -46,100 +43,104 @@ import lombok.extern.slf4j.Slf4j;
 @AllArgsConstructor
 public class JWTSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
-    private static JWTSecurityConfig defaultConfig = JWTSecurityConfig.builder().build();
+  private static JWTSecurityConfig defaultConfig = JWTSecurityConfig.builder().build();
 
-    private final Optional<JWTSecurityConfig> config;
+  private final Optional<JWTSecurityConfig> config;
 
-    @Bean
-    public JWTAuthenticationEntryPoint jwtAuthenticationEntryPoint() {
-        return new JWTAuthenticationEntryPoint();
+  @Bean
+  public JWTAuthenticationEntryPoint jwtAuthenticationEntryPoint() {
+    return new JWTAuthenticationEntryPoint();
+  }
+
+  @Bean
+  ValidatingHierarchicalClaimsExtractor hierarchicalJwtClaimsExtractor() {
+    return new ValidatingHierarchicalClaimsExtractor(jwtSecurityConfig());
+  }
+
+  private JWTSecurityConfig jwtSecurityConfig() {
+    return config.orElse(defaultConfig);
+  }
+
+  @Bean
+  @Override
+  public AuthenticationManager authenticationManager() {
+    return new ProviderManager(
+        Collections.singletonList(jwtAuthenticationProvider(hierarchicalJwtClaimsExtractor())));
+  }
+
+  public JWTAuthenticationTokenFilter authenticationTokenFilterBean() throws Exception {
+    JWTSecurityConfig jwtSecurityConfig = jwtSecurityConfig();
+
+    JWTAuthenticationTokenFilter authenticationTokenFilter = new JWTAuthenticationTokenFilter();
+    authenticationTokenFilter.setAuthenticationManager(authenticationManager());
+    authenticationTokenFilter.setAuthenticationSuccessHandler(
+        new JWTAuthenticationSuccessHandler());
+    if (!jwtSecurityConfig.anonymousPaths().isEmpty()) {
+      authenticationTokenFilter.addUnauthenticatedPaths(
+          jwtSecurityConfig.anonymousPaths().toJavaSet());
     }
+    jwtSecurityConfig
+        .authenticationFailureHandler()
+        .forEach(authenticationTokenFilter::setAuthenticationFailureHandler);
 
-    @Bean
-    ValidatingHierarchicalClaimsExtractor hierarchicalJwtClaimsExtractor() {
-        return new ValidatingHierarchicalClaimsExtractor(jwtSecurityConfig());
-    }
+    return authenticationTokenFilter;
+  }
 
-    private JWTSecurityConfig jwtSecurityConfig() {
-        return config.orElse(defaultConfig);
-    }
+  @Bean
+  public JWTAuthenticationProvider jwtAuthenticationProvider(
+      ValidatingHierarchicalClaimsExtractor hierarchicalJWTClaimsExtractor) {
+    return new JWTAuthenticationProvider(hierarchicalJWTClaimsExtractor);
+  }
 
-    @Bean
-    @Override
-    public AuthenticationManager authenticationManager() {
-        return new ProviderManager(Collections.singletonList(jwtAuthenticationProvider(
-                hierarchicalJwtClaimsExtractor())));
-    }
+  @Override
+  public void configure(HttpSecurity httpSecurity) throws Exception {
 
-    public JWTAuthenticationTokenFilter authenticationTokenFilterBean() throws Exception {
-        JWTSecurityConfig jwtSecurityConfig = jwtSecurityConfig();
+    final String[] unauthenticatedPaths = getUnauthenticatedPaths();
 
-        JWTAuthenticationTokenFilter authenticationTokenFilter = new JWTAuthenticationTokenFilter();
-        authenticationTokenFilter.setAuthenticationManager(authenticationManager());
-        authenticationTokenFilter.setAuthenticationSuccessHandler(
-                new JWTAuthenticationSuccessHandler());
-        if (!jwtSecurityConfig.anonymousPaths().isEmpty()) {
-            authenticationTokenFilter.addUnauthenticatedPaths(jwtSecurityConfig.anonymousPaths().toJavaSet());
-        }
-        jwtSecurityConfig.authenticationFailureHandler().forEach(
-                authenticationTokenFilter::setAuthenticationFailureHandler);
+    log.info("with unauthenticated paths: [{}]", String.join(", ", unauthenticatedPaths));
 
-        return authenticationTokenFilter;
-    }
+    httpSecurity
+        // disable csrf
+        .csrf()
+        .disable()
+        .cors()
+        .and()
+        // allow
+        .authorizeRequests()
+        .antMatchers(unauthenticatedPaths)
+        .permitAll()
+        .and()
+        // enable authorization
+        .authorizeRequests()
+        .anyRequest()
+        .authenticated()
+        .and()
+        .exceptionHandling()
+        .authenticationEntryPoint(jwtAuthenticationEntryPoint())
+        .and()
+        .sessionManagement()
+        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
 
-    @Bean
-    public JWTAuthenticationProvider jwtAuthenticationProvider(
-            ValidatingHierarchicalClaimsExtractor hierarchicalJWTClaimsExtractor) {
-        return new JWTAuthenticationProvider(hierarchicalJWTClaimsExtractor);
-    }
+        // Custom JWT based security filter
+        .and()
+        .addFilterBefore(
+            authenticationTokenFilterBean(), UsernamePasswordAuthenticationFilter.class)
 
-    @Override
-    public void configure(HttpSecurity httpSecurity) throws Exception {
+        // disable page caching
+        .headers()
+        .cacheControl();
+  }
 
-        final String[] unauthenticatedPaths = getUnauthenticatedPaths();
+  @Override
+  public void configure(WebSecurity web) {
+    config.ifPresent(
+        config -> config.anonymousMethods().forEach(method -> web.ignoring().antMatchers(method)));
+  }
 
-        log.info("with unauthenticated paths: [{}]", String.join(", ", unauthenticatedPaths));
-
-        httpSecurity
-                // disable csrf
-                .csrf()
-                .disable()
-
-                .cors().and()
-                // allow
-                .authorizeRequests()
-                .antMatchers(unauthenticatedPaths)
-                .permitAll()
-                .and()
-                // enable authorization
-                .authorizeRequests()
-                .anyRequest()
-                .authenticated()
-                .and()
-                .exceptionHandling()
-                .authenticationEntryPoint(jwtAuthenticationEntryPoint())
-                .and()
-                .sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-
-                // Custom JWT based security filter
-                .and()
-                .addFilterBefore(authenticationTokenFilterBean(),
-                        UsernamePasswordAuthenticationFilter.class)
-
-                // disable page caching
-                .headers()
-                .cacheControl();
-    }
-
-    @Override
-    public void configure(WebSecurity web) {
-        config.ifPresent(config -> config.anonymousMethods()
-                            .forEach(method -> web.ignoring().antMatchers(method)));
-    }
-
-    private String[] getUnauthenticatedPaths() {
-        return config.map(JWTSecurityConfig::anonymousPaths)
-                .map(list -> list.toJavaArray(String[]::new)).orElse(new String[0]);
-    }
+  private String[] getUnauthenticatedPaths() {
+    return config
+        .map(JWTSecurityConfig::anonymousPaths)
+        .map(list -> list.toJavaArray(String[]::new))
+        .orElse(new String[0]);
+  }
 }

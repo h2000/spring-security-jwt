@@ -22,7 +22,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import javax.servlet.http.HttpServletRequest;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -45,87 +44,95 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
 @RunWith(SpringRunner.class)
-@ContextConfiguration(classes = { JWTSecurityConfigurationITest.TestPathConfiguration.class,
-        JWTSecurityConfigurationITest.TestController.class, JWTSecurityConfiguration.class })
+@ContextConfiguration(
+    classes = {
+      JWTSecurityConfigurationITest.TestPathConfiguration.class,
+      JWTSecurityConfigurationITest.TestController.class,
+      JWTSecurityConfiguration.class
+    })
 @WebAppConfiguration
 @EnableWebSecurity
 public class JWTSecurityConfigurationITest {
-    private MockMvc mockMvc;
+  private MockMvc mockMvc;
 
-    @Autowired
-    private WebApplicationContext webApplicationContext;
+  @Autowired private WebApplicationContext webApplicationContext;
 
-    @Before
-    public void setUp() {
-        mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
+  @Before
+  public void setUp() {
+    mockMvc =
+        MockMvcBuilders.webAppContextSetup(webApplicationContext).apply(springSecurity()).build();
+  }
+
+  @Test
+  public void httpGETReturnsOk_whenAnonymousPathIsAccessed() throws Exception {
+    mockMvc.perform(get("/anonymous")).andExpect(status().isOk());
+  }
+
+  @Test
+  public void httpGETReturnsUnauthorized_whenAuthenticatedPathIsAccessed() throws Exception {
+    mockMvc.perform(get("/authorized")).andExpect(status().isUnauthorized());
+  }
+
+  @Test
+  public void httpPOSTReturnsUnauthorized_whenAuthenticatedPathIsAccessed() throws Exception {
+    mockMvc.perform(post("/authorized")).andExpect(status().isUnauthorized());
+  }
+
+  @Test
+  public void httpOPTIONSReturnsOk_whenAnonymousPathIsAccessed() throws Exception {
+    mockMvc.perform(options("/anonymous")).andExpect(status().isOk());
+  }
+
+  @Test
+  public void httpOPTIONSReturnsOk_whenAuthenticatedPathIsAccessed() throws Exception {
+    mockMvc.perform(options("/authorized")).andExpect(status().isOk());
+  }
+
+  @Configuration
+  static class TestPathConfiguration {
+    @Bean
+    public JWTSecurityConfig securityConfig() {
+      return JWTSecurityConfig.builder()
+          .addAnonymousPaths("/anonymous")
+          .addAnonymousMethods(HttpMethod.OPTIONS)
+          .build();
     }
 
-    @Test
-    public void httpGETReturnsOk_whenAnonymousPathIsAccessed() throws Exception {
-        mockMvc.perform(get("/anonymous")).andExpect(status().isOk());
+    @Bean
+    public CorsFilter corsFilter() {
+      final CorsConfiguration config = new CorsConfiguration();
+
+      config.addAllowedOrigin("*");
+      config.addAllowedHeader("*");
+      config.addAllowedMethod("GET");
+      config.addAllowedMethod("PUT");
+      config.addAllowedMethod("POST");
+
+      return new CorsFilter(
+          new CorsConfigurationSource() {
+
+            @Override
+            public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
+              return config;
+            }
+          });
+    }
+  }
+
+  @Controller
+  static class TestController {
+    @RequestMapping(
+        value = "/anonymous",
+        method = {RequestMethod.GET, RequestMethod.OPTIONS})
+    public String anonymousAccess() {
+      return "anonymousResponse";
     }
 
-    @Test
-    public void httpGETReturnsUnauthorized_whenAuthenticatedPathIsAccessed() throws Exception {
-        mockMvc.perform(get("/authorized")).andExpect(status().isUnauthorized());
+    @RequestMapping(
+        value = "/authorized",
+        method = {RequestMethod.GET, RequestMethod.POST, RequestMethod.OPTIONS})
+    public String authorizedAccess() {
+      return "authorizedResponse";
     }
-
-    @Test
-    public void httpPOSTReturnsUnauthorized_whenAuthenticatedPathIsAccessed() throws Exception {
-        mockMvc.perform(post("/authorized")).andExpect(status().isUnauthorized());
-    }
-
-    @Test
-    public void httpOPTIONSReturnsOk_whenAnonymousPathIsAccessed() throws Exception {
-        mockMvc.perform(options("/anonymous")).andExpect(status().isOk());
-    }
-
-    @Test
-    public void httpOPTIONSReturnsOk_whenAuthenticatedPathIsAccessed() throws Exception {
-        mockMvc.perform(options("/authorized")).andExpect(status().isOk());
-    }
-
-    @Configuration
-    static class TestPathConfiguration {
-        @Bean
-        public JWTSecurityConfig securityConfig() {
-            return JWTSecurityConfig
-                .builder()
-                .addAnonymousPaths("/anonymous")
-                .addAnonymousMethods(HttpMethod.OPTIONS)
-                .build();
-        }
-    	@Bean
-    	public CorsFilter corsFilter() {
-    		final CorsConfiguration config = new CorsConfiguration();
-
-    		config.addAllowedOrigin("*");
-    		config.addAllowedHeader("*");
-    		config.addAllowedMethod("GET");
-    		config.addAllowedMethod("PUT");
-    		config.addAllowedMethod("POST");
-
-    		return new CorsFilter(new CorsConfigurationSource() {
-
-    			@Override
-    			public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
-    				return config;
-    			}
-    		});
-    	}
-    }
-
-    @Controller
-    static class TestController {
-        @RequestMapping(value = "/anonymous", method = { RequestMethod.GET, RequestMethod.OPTIONS })
-        public String anonymousAccess() {
-            return "anonymousResponse";
-        }
-
-        @RequestMapping(value = "/authorized", method = { RequestMethod.GET, RequestMethod.POST,
-                RequestMethod.OPTIONS })
-        public String authorizedAccess() {
-            return "authorizedResponse";
-        }
-    }
+  }
 }

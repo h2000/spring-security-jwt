@@ -17,52 +17,54 @@ package com.mercateo.spring.security.jwt.token.extractor;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.mercateo.spring.security.jwt.token.claim.JWTClaim;
+import io.vavr.collection.List;
 import java.util.Map;
-
 import org.junit.Before;
 import org.junit.Test;
 
-import com.mercateo.spring.security.jwt.token.claim.JWTClaim;
-
-import io.vavr.collection.List;
-
 public class InnerClaimsWrapperTest {
 
-    private InnerClaimsWrapper uut;
+  private InnerClaimsWrapper uut;
 
-    @Before
-    public void setUp() {
-        uut = new InnerClaimsWrapper();
-    }
+  @Before
+  public void setUp() {
+    uut = new InnerClaimsWrapper();
+  }
 
-    @Test
-    public void given3Claims_whenWrapInnerClaims_thenMapWith3Keys() {
-        final JWTClaim jwtClaim1 = JWTClaim.builder().name("jwtClaim1").value("value1").issuer("iss").build();
-        final JWTClaim jwtClaim2 = JWTClaim.builder().name("jwtClaim2").value("value2").issuer("iss").build();
-        final JWTClaim jwtClaim3 = JWTClaim.builder().name("jwtClaim3").value("value3").issuer("iss").build();
+  @Test
+  public void given3Claims_whenWrapInnerClaims_thenMapWith3Keys() {
+    final JWTClaim jwtClaim1 =
+        JWTClaim.builder().name("jwtClaim1").value("value1").issuer("iss").build();
+    final JWTClaim jwtClaim2 =
+        JWTClaim.builder().name("jwtClaim2").value("value2").issuer("iss").build();
+    final JWTClaim jwtClaim3 =
+        JWTClaim.builder().name("jwtClaim3").value("value3").issuer("iss").build();
 
-        final Map<String, JWTClaim> result = uut.wrapInnerClaims(List.of(jwtClaim1, jwtClaim2, jwtClaim3));
-        assertThat(result).isNotNull().isNotEmpty().hasSize(3);
-        assertThat(result).containsOnlyKeys("jwtClaim1", "jwtClaim2", "jwtClaim3");
-    }
+    final Map<String, JWTClaim> result =
+        uut.wrapInnerClaims(List.of(jwtClaim1, jwtClaim2, jwtClaim3));
+    assertThat(result).isNotNull().isNotEmpty().hasSize(3);
+    assertThat(result).containsOnlyKeys("jwtClaim1", "jwtClaim2", "jwtClaim3");
+  }
 
-    @Test
-    public void given2IdenticalClaims_whenWrapInnerClaims_thenMapWith1Key() {
-        final JWTClaim jwtClaim1 = JWTClaim.builder().name("jwtClaim1").value("value1").issuer("iss").build();
+  @Test
+  public void given2IdenticalClaims_whenWrapInnerClaims_thenMapWith1Key() {
+    final JWTClaim jwtClaim1 =
+        JWTClaim.builder().name("jwtClaim1").value("value1").issuer("iss").build();
 
-        final Map<String, JWTClaim> result = uut.wrapInnerClaims(List.of(jwtClaim1, jwtClaim1));
-        assertThat(result).isNotNull().isNotEmpty().hasSize(1);
-        assertThat(result).containsOnlyKeys("jwtClaim1");
-    }
+    final Map<String, JWTClaim> result = uut.wrapInnerClaims(List.of(jwtClaim1, jwtClaim1));
+    assertThat(result).isNotNull().isNotEmpty().hasSize(1);
+    assertThat(result).containsOnlyKeys("jwtClaim1");
+  }
 
-    @Test
-    public void givenNoClaims_whenWrapInnerClaims_thenEmptyMap() {
-        final Map<String, JWTClaim> result = uut.wrapInnerClaims(List.empty());
-        assertThat(result).isNotNull().isEmpty();
-    }
+  @Test
+  public void givenNoClaims_whenWrapInnerClaims_thenEmptyMap() {
+    final Map<String, JWTClaim> result = uut.wrapInnerClaims(List.empty());
+    assertThat(result).isNotNull().isEmpty();
+  }
 
-    @Test(expected = NullPointerException.class)
-    public void givenNull_whenWrapInnerClaims_then() {
-        uut.wrapInnerClaims(null);
-    }
+  @Test(expected = NullPointerException.class)
+  public void givenNull_whenWrapInnerClaims_then() {
+    uut.wrapInnerClaims(null);
+  }
 }

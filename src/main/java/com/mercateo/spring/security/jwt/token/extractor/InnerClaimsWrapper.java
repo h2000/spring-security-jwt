@@ -15,33 +15,31 @@
  */
 package com.mercateo.spring.security.jwt.token.extractor;
 
+import com.mercateo.spring.security.jwt.token.claim.JWTClaim;
+import io.vavr.collection.List;
 import java.util.Map;
 import java.util.Optional;
 
-import com.mercateo.spring.security.jwt.token.claim.JWTClaim;
-
-import io.vavr.collection.List;
-
 class InnerClaimsWrapper {
 
-    Map<String, JWTClaim> wrapInnerClaims(List<JWTClaim> claims) {
-        return claims.groupBy(JWTClaim::name).mapValues(this::wrapGroupedClaims).toJavaMap();
-    }
+  Map<String, JWTClaim> wrapInnerClaims(List<JWTClaim> claims) {
+    return claims.groupBy(JWTClaim::name).mapValues(this::wrapGroupedClaims).toJavaMap();
+  }
 
-    private JWTClaim wrapGroupedClaims(List<JWTClaim> claims) {
-        final List<JWTClaim> reverse = claims.reverse();
-        JWTClaim innerClaim = null;
-        for (JWTClaim jwtClaim : reverse) {
-            innerClaim = buildJwtClaim(jwtClaim, innerClaim);
-        }
-        return innerClaim;
+  private JWTClaim wrapGroupedClaims(List<JWTClaim> claims) {
+    final List<JWTClaim> reverse = claims.reverse();
+    JWTClaim innerClaim = null;
+    for (JWTClaim jwtClaim : reverse) {
+      innerClaim = buildJwtClaim(jwtClaim, innerClaim);
     }
+    return innerClaim;
+  }
 
-    private JWTClaim buildJwtClaim(final JWTClaim jwtClaim, final JWTClaim innerClaim) {
-        return JWTClaim //
-                .builder()
-                .from(jwtClaim)
-                .innerClaim(Optional.ofNullable(innerClaim))
-                .build();
-    }
+  private JWTClaim buildJwtClaim(final JWTClaim jwtClaim, final JWTClaim innerClaim) {
+    return JWTClaim //
+        .builder()
+        .from(jwtClaim)
+        .innerClaim(Optional.ofNullable(innerClaim))
+        .build();
+  }
 }

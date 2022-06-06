@@ -15,12 +15,10 @@
  */
 package com.mercateo.spring.security.jwt.security;
 
+import com.mercateo.immutables.ValueStyle;
 import org.immutables.value.Value;
 import org.springframework.security.core.GrantedAuthority;
 
-import com.mercateo.immutables.ValueStyle;
-
 @Value.Immutable
 @ValueStyle
-public interface _JWTAuthority extends GrantedAuthority {
-}
+public interface _JWTAuthority extends GrantedAuthority {}

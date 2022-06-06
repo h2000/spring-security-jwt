@@ -15,22 +15,20 @@
  */
 package com.mercateo.spring.security.jwt.token.claim;
 
-import java.util.Map;
-
-import org.immutables.value.Value;
-
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.mercateo.immutables.ValueStyle;
+import java.util.Map;
+import org.immutables.value.Value;
 
 @Value.Immutable
 @ValueStyle
 public interface _JWTClaims {
-    DecodedJWT token();
+  DecodedJWT token();
 
-    Map<String, JWTClaim> claims();
+  Map<String, JWTClaim> claims();
 
-    @Value.Default
-    default int verifiedCount() {
-        return 0;
-    }
+  @Value.Default
+  default int verifiedCount() {
+    return 0;
+  }
 }

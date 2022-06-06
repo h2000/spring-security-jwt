@@ -15,11 +15,9 @@
  */
 package com.mercateo.spring.security.jwt.token.config;
 
-import org.immutables.value.Value;
-
 import com.mercateo.immutables.ValueStyle;
+import org.immutables.value.Value;
 
 @Value.Immutable
 @ValueStyle
-public interface _JWTConfigData extends JWTConfig {
-}
+public interface _JWTConfigData extends JWTConfig {}
