@@ -19,22 +19,21 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.auth0.jwk.Jwk;
 import com.auth0.jwk.SigningKeyNotFoundException;
-import io.vavr.control.Try;
-import lombok.val;
+import com.mercateo.spring.security.jwt.support.Try;
 import org.junit.Test;
 
 public class Auth0JWTKeysetTest {
 
   @Test
   public void shouldStoreDomain() {
-    val jwtKeyset = new Auth0JWTKeyset("domain");
+    final Auth0JWTKeyset jwtKeyset = new Auth0JWTKeyset("domain");
 
     assertThat(jwtKeyset.getAuth0Domain()).isEqualTo("domain");
   }
 
   @Test
   public void shouldReturnFailureForUnknownKeyId() {
-    val jwtKeyset = new Auth0JWTKeyset("domain");
+    final Auth0JWTKeyset jwtKeyset = new Auth0JWTKeyset("domain");
 
     final Try<Jwk> foo = jwtKeyset.getKeysetForId("foo");
     assertThat(foo.isFailure()).isTrue();

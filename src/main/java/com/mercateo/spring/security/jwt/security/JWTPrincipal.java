@@ -24,7 +24,9 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -53,13 +55,13 @@ public class JWTPrincipal implements UserDetails {
     this.claims = claims;
   }
 
+  @SuppressWarnings("unused")
   public static JWTPrincipal fromContext() {
-    return (JWTPrincipal)
-        requireNonNull(
-                requireNonNull(SecurityContextHolder.getContext(), "no security context available")
-                    .getAuthentication(),
-                "no authentication available")
-            .getPrincipal();
+    final SecurityContext securityContext =
+        requireNonNull(SecurityContextHolder.getContext(), "no security context available");
+    final Authentication authentication =
+        requireNonNull(securityContext.getAuthentication(), "no authentication available");
+    return (JWTPrincipal) authentication.getPrincipal();
   }
 
   @JsonIgnore

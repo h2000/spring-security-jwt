@@ -29,12 +29,11 @@ import com.auth0.jwt.exceptions.InvalidClaimException;
 import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.mercateo.spring.security.jwt.JWKProvider;
+import com.mercateo.spring.security.jwt.support.Try;
+import com.mercateo.spring.security.jwt.support.Tuple2;
 import com.mercateo.spring.security.jwt.token.config.JWTConfig;
 import com.mercateo.spring.security.jwt.token.config.JWTConfigData;
 import com.mercateo.spring.security.jwt.token.keyset.JWTKeyset;
-import io.vavr.Tuple;
-import io.vavr.Tuple2;
-import io.vavr.control.Try;
 import java.util.Date;
 import lombok.val;
 import org.junit.Before;
@@ -54,7 +53,7 @@ public class JWTVerifierTest {
 
   @Mock private JWTKeyset jwks;
 
-  private String keyId = "4711";
+  private final String keyId = "4711";
 
   private Algorithm algorithm;
 
@@ -92,7 +91,7 @@ public class JWTVerifierTest {
 
   @Test
   public void verifiesJWTWithAudience() {
-    val originalToken = addVerifiedJWTAuthHeader(0, 30, Tuple.of("aud", AUDIENCE));
+    val originalToken = addVerifiedJWTAuthHeader(0, 30, Tuple2.of("aud", AUDIENCE));
     uut =
         new JWTVerifierFactory(jwks, JWTConfigData.builder().addTokenAudiences(AUDIENCE).build())
             .create();
@@ -110,7 +109,7 @@ public class JWTVerifierTest {
 
   @Test
   public void verifiesJWTWithAlternativeAudience() {
-    val originalToken = addVerifiedJWTAuthHeader(0, 30, Tuple.of("aud", AUDIENCE));
+    val originalToken = addVerifiedJWTAuthHeader(0, 30, Tuple2.of("aud", AUDIENCE));
     uut =
         new JWTVerifierFactory(
                 jwks,
@@ -196,7 +195,7 @@ public class JWTVerifierTest {
             .withSubject("<subject>");
 
     for (Tuple2<String, String> claim : claims) {
-      jwtBuilder.withClaim(claim._1(), claim._2());
+      jwtBuilder.withClaim(claim._1, claim._2);
     }
     return jwtBuilder.sign(algorithm);
   }

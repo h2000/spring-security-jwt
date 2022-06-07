@@ -16,15 +16,18 @@
 package com.mercateo.spring.security.jwt.token.extractor;
 
 import com.auth0.jwt.JWT;
+import com.mercateo.spring.security.jwt.token.claim.JWTClaim;
 import com.mercateo.spring.security.jwt.token.claim.JWTClaims;
 import com.mercateo.spring.security.jwt.token.config.JWTConfig;
 import com.mercateo.spring.security.jwt.token.verifier.JWTVerifier;
 import com.mercateo.spring.security.jwt.token.verifier.TokenVerifier;
-import io.vavr.collection.List;
-import io.vavr.collection.Set;
-import io.vavr.control.Option;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
-import lombok.val;
 
 @Slf4j
 public class ValidatingHierarchicalClaimsExtractor {
@@ -32,7 +35,7 @@ public class ValidatingHierarchicalClaimsExtractor {
   public static final String WRAPPED_TOKEN_KEY = "jwt";
 
   public static final List<String> AUTHORIZATION_CLAIMS =
-      List.of("scope", "authorization", "roles");
+      Arrays.asList("scope", "authorization", "roles");
 
   private final TokenProcessor tokenProcessor;
 
@@ -40,36 +43,39 @@ public class ValidatingHierarchicalClaimsExtractor {
 
   private final InnerClaimsWrapper collector;
 
-  private final ClaimsValidator claimsValidator;
+  private final RequiredClaimNamesValidator requiredClaimNamesValidator;
 
   private final Set<String> claims;
 
-  private final Set<String> requiredClaims;
+  private final Optional<JWTVerifier> jwtVerifier;
 
-  private final Option<JWTVerifier> jwtVerifier;
-
-  public ValidatingHierarchicalClaimsExtractor(JWTConfig config) {
+  public ValidatingHierarchicalClaimsExtractor(final JWTConfig config) {
     this.tokenProcessor = new TokenProcessor();
-    jwtVerifier = config.jwtVerifier();
+    this.jwtVerifier = config.jwtVerifier();
     this.verifier = new TokenVerifier(jwtVerifier);
-    requiredClaims = config.getRequiredClaims();
-    claims = config.getOptionalClaims().addAll(AUTHORIZATION_CLAIMS).addAll(requiredClaims);
-    this.claimsValidator = new ClaimsValidator(requiredClaims);
+    this.requiredClaimNamesValidator = new RequiredClaimNamesValidator(config.getRequiredClaims());
     this.collector = new InnerClaimsWrapper();
 
-    config.jwtVerifier().forEach(v -> log.info("use JWT verifier {}", v));
+    final HashSet<String> claimNames = new HashSet<>();
+    claimNames.addAll(config.getOptionalClaims());
+    claimNames.addAll(AUTHORIZATION_CLAIMS);
+    claimNames.addAll(config.getRequiredClaims());
+    this.claims = Collections.unmodifiableSet(claimNames);
+
+    config.jwtVerifier().ifPresent(v -> log.info("use JWT verifier {}", v));
   }
 
-  public JWTClaims extractClaims(String tokenString) {
-    val extractor =
-        new HierarchicalClaimsExtractor(tokenProcessor, verifier, claims, new ClaimExtractor());
+  public JWTClaims extractClaims(final String tokenString) {
+    final ClaimExtractor claimExtractor = new ClaimExtractor();
+    final HierarchicalClaimsExtractor extractor =
+        new HierarchicalClaimsExtractor(tokenProcessor, verifier, claims, claimExtractor);
 
-    val claims = extractor.extractClaims(tokenString);
+    final List<JWTClaim> claims = extractor.extractClaims(tokenString);
 
-    if (jwtVerifier.isDefined()) {
-      claimsValidator.ensureAtLeastOneVerifiedToken(extractor.getVerifiedTokenCount());
+    if (jwtVerifier.isPresent()) {
+      requiredClaimNamesValidator.ensureAtLeastOneVerifiedToken(extractor.getVerifiedTokenCount());
     }
-    claimsValidator.ensurePresenceOfRequiredClaims(claims);
+    requiredClaimNamesValidator.ensurePresenceOfRequiredClaims(claims);
 
     return JWTClaims.builder()
         .claims(collector.wrapInnerClaims(claims))
@@ -79,6 +85,6 @@ public class ValidatingHierarchicalClaimsExtractor {
   }
 
   public boolean hasJWTVerifier() {
-    return jwtVerifier.isDefined();
+    return jwtVerifier.isPresent();
   }
 }

@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.entry;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTCreator;
 import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.interfaces.Claim;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import java.lang.reflect.Method;
 import java.util.HashMap;
@@ -96,12 +97,11 @@ public class ClaimExtractorTest {
 
   @Test
   public void extractsObject() {
-    val result = uut.extract(jwt.getClaim("object"));
+    final Claim claim = jwt.getClaim("object");
+    @SuppressWarnings("unchecked")
+    final Map<String, Object> result = (Map<String, Object>) uut.extract(claim);
 
-    assertThat((Map<String, Object>) result)
-        .isNotNull()
-        .isNotEmpty()
-        .contains(entry("foo", 1.2), entry("bar", "test"));
+    assertThat(result).isNotNull().isNotEmpty().contains(entry("foo", 1.2), entry("bar", "test"));
   }
 
   @Test

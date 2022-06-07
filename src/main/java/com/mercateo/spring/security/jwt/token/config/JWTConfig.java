@@ -18,9 +18,8 @@ package com.mercateo.spring.security.jwt.token.config;
 import com.mercateo.spring.security.jwt.token.keyset.JWTKeyset;
 import com.mercateo.spring.security.jwt.token.verifier.JWTVerifier;
 import com.mercateo.spring.security.jwt.token.verifier.JWTVerifierFactory;
-import io.vavr.collection.Set;
-import io.vavr.control.Option;
-import org.immutables.value.Value;
+import java.util.Optional;
+import java.util.Set;
 
 public interface JWTConfig {
 
@@ -30,7 +29,6 @@ public interface JWTConfig {
    *     <p>Setting a specific leeway value on a given Claim will override this value for that
    *     Claim.
    */
-  @Value.Default
   default int getTokenLeeway() {
     return 0;
   }
@@ -45,11 +43,10 @@ public interface JWTConfig {
   Set<String> getOptionalClaims();
 
   /** @return {@link JWTKeyset} to be used for token verification */
-  Option<JWTKeyset> jwtKeyset();
+  Optional<JWTKeyset> jwtKeyset();
 
   /** @return {@link JWTVerifier} for given {@link JWTKeyset} to be used for token verification */
-  @Value.Derived
-  default Option<JWTVerifier> jwtVerifier() {
+  default Optional<JWTVerifier> jwtVerifier() {
     return jwtKeyset()
         .map(jwks -> new JWTVerifierFactory(jwks, this))
         .map(JWTVerifierFactory::create);

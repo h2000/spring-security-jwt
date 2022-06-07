@@ -8,5 +8,7 @@
       This threat can be ignored for this library as it does not direclty use "Content-Disposition" header.
       ]]></notes>
         <cve>CVE-2020-5398</cve>
+        <cve>CVE-2020-5408</cve>
+        <cve>CVE-2016-1000027</cve>
     </suppress>
 </suppressions>

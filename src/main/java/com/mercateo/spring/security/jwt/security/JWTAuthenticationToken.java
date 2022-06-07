@@ -19,7 +19,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 
 public class JWTAuthenticationToken extends UsernamePasswordAuthenticationToken {
 
-  private String token;
+  private final String token;
 
   public JWTAuthenticationToken(String token) {
     super(null, null);

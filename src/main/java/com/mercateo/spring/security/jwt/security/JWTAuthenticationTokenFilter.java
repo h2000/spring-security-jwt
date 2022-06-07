@@ -39,7 +39,7 @@ public class JWTAuthenticationTokenFilter extends AbstractAuthenticationProcessi
 
   private final AntPathMatcher antPathMatcher = new AntPathMatcher();
 
-  private Set<String> unauthenticatedPaths = new HashSet<>();
+  private final Set<String> unauthenticatedPaths = new HashSet<>();
 
   public JWTAuthenticationTokenFilter() {
     super("/**");

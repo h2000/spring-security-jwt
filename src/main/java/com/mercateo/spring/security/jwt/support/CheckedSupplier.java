@@ -13,12 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.mercateo.spring.security.jwt.security;
+package com.mercateo.spring.security.jwt.support;
 
-import com.mercateo.immutables.ValueStyle;
-import org.immutables.value.Value;
-import org.springframework.security.core.GrantedAuthority;
+public interface CheckedSupplier<R> {
 
-@Value.Immutable
-@ValueStyle
-public interface _JWTAuthority extends GrantedAuthority {}
+  R apply() throws Throwable;
+}

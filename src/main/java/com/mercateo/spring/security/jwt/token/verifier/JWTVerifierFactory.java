@@ -19,6 +19,7 @@ import com.auth0.jwk.Jwk;
 import com.auth0.jwt.interfaces.RSAKeyProvider;
 import com.mercateo.spring.security.jwt.token.config.JWTConfig;
 import com.mercateo.spring.security.jwt.token.keyset.JWTKeyset;
+import com.mercateo.spring.security.jwt.token.verifier.JWTVerifier.BaseVerification;
 import java.security.Key;
 import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
@@ -26,9 +27,9 @@ import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
+import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import lombok.val;
 
 @AllArgsConstructor
 @Slf4j
@@ -66,14 +67,14 @@ public class JWTVerifierFactory {
           }
         };
 
-    val verification = JWTVerifier.init(rsaKeyProvider);
+    final BaseVerification verification = JWTVerifier.init(rsaKeyProvider);
 
     final int tokenLeeway = jwtConfig.getTokenLeeway();
     verification.acceptLeeway(tokenLeeway);
 
-    val tokenAudiences = jwtConfig.getTokenAudiences();
-    if (tokenAudiences.nonEmpty()) {
-      verification.withAudience(tokenAudiences.toJavaArray(String[]::new));
+    Set<String> tokenAudiences = jwtConfig.getTokenAudiences();
+    if (!tokenAudiences.isEmpty()) {
+      verification.withAudience(tokenAudiences.stream().toArray(String[]::new));
     }
 
     return verification.build();

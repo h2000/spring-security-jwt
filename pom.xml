@@ -4,15 +4,9 @@
 
 	<modelVersion>4.0.0</modelVersion>
 
-	<parent>
-		<groupId>com.mercateo.oss</groupId>
-		<artifactId>oss-parent-pom</artifactId>
-		<version>1.0.9</version>
-	</parent>
-
 	<artifactId>spring-security-jwt</artifactId>
 	<groupId>com.mercateo.spring</groupId>
-	<version>2.1.2-SNAPSHOT</version>
+	<version>3.0.0-SNAPSHOT</version>
 
 	<name>spring-security-jwt</name>
 	<packaging>jar</packaging>
@@ -22,7 +16,7 @@
 
 	<organization>
 		<name>Mercateo AG</name>
-		<url>http://www.mercateo.com</url>
+		<url>https://www.mercateo.com</url>
 	</organization>
 
 	<issueManagement>
@@ -33,7 +27,7 @@
 	<licenses>
 		<license>
 			<name>ASL2</name>
-			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+			<url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
 		</license>
 	</licenses>
 
@@ -42,9 +36,9 @@
 			<id>andreas_wuerl</id>
 			<name>Andreas Würl</name>
 			<email>andreas.wuerl@mercateo.com</email>
-			<url>http://www.mercateo.com</url>
+			<url>https://www.mercateo.com</url>
 			<organization>Mercateo AG</organization>
-			<organizationUrl>http://www.mercateo.com</organizationUrl>
+			<organizationUrl>https://www.mercateo.com</organizationUrl>
 			<roles>
 				<role>developer</role>
 			</roles>
@@ -53,9 +47,9 @@
 			<id>thorsten_weber</id>
 			<name>Thorsten Weber</name>
 			<email>thorsten.weber@mercateo.com</email>
-			<url>http://www.mercateo.com</url>
+			<url>https://www.mercateo.com</url>
 			<organization>Mercateo AG</organization>
-			<organizationUrl>http://www.mercateo.com</organizationUrl>
+			<organizationUrl>https://www.mercateo.com</organizationUrl>
 			<roles>
 				<role>developer</role>
 			</roles>
@@ -72,31 +66,35 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-		<!-- -->
-		<spring-security.version>5.1.5.RELEASE</spring-security.version>
-		<spring.version>5.1.13.RELEASE</spring.version>
-		<jackson.version>2.10.0</jackson.version>
-		<immutables.version>2.7.5</immutables.version>
-		<lombok.version>1.18.8</lombok.version>
+		<!-- deps -->
 		<javax.servlet-api.version>3.1.0</javax.servlet-api.version>
-		<vavr-encodings.version>0.6.0</vavr-encodings.version>
-		<default-immutables.version>1.2.5</default-immutables.version>
-		<java-jwt.version>3.8.0</java-jwt.version>
+		<spring-security.version>5.7.1</spring-security.version>
+		<spring.version>5.3.20</spring.version>
+		<jackson.version>2.13.3</jackson.version>
+		<lombok.version>1.18.24</lombok.version>
+		<java-jwt.version>3.19.2</java-jwt.version>
 		<jwks-rsa.version>0.8.1</jwks-rsa.version>
-		<bcprov-jdk15on.version>1.61</bcprov-jdk15on.version>
-		<vavr.version>0.10.0</vavr.version>
-		<slf4j-api.version>1.7.25</slf4j-api.version>
+		<bcprov-jdk15on.version>1.70</bcprov-jdk15on.version>
+		<slf4j-api.version>1.7.36</slf4j-api.version>
+		<commons-codec.version>1.15</commons-codec.version>
 		<!-- test -->
-		<junit.version>4.12</junit.version>
-		<assertj-core.version>3.12.2</assertj-core.version>
-		<mockito-core.version>2.27.0</mockito-core.version>
-		<logback-classic.version>1.2.3</logback-classic.version>
+		<junit.version>4.13.2</junit.version>
+		<assertj-core.version>3.22.0</assertj-core.version>
+		<mockito-core.version>4.5.1</mockito-core.version>
+		<logback-classic.version>1.2.11</logback-classic.version>
 		<!-- plugin -->
 		<maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
 		<maven-surefire-plugin.version>2.22.1</maven-surefire-plugin.version>
 		<maven-failsafe-plugin.version>2.22.1</maven-failsafe-plugin.version>
-		<maven-shade-plugin.version>3.2.1</maven-shade-plugin.version>
-		<dependency-check-maven.version>5.2.2</dependency-check-maven.version>
+		<maven-release-plugin.version>2.5.3</maven-release-plugin.version>
+		<maven-clean-plugin.version>3.1.0</maven-clean-plugin.version>
+		<maven-javadoc-plugin.version>3.1.0</maven-javadoc-plugin.version>
+		<maven-source-plugin.version>3.1.0</maven-source-plugin.version>
+		<maven-jar-plugin.version>3.1.2</maven-jar-plugin.version>
+		<maven-dependency-plugin.version>3.1.2</maven-dependency-plugin.version>
+		<dependency-check-maven.version>7.1.0</dependency-check-maven.version>
+		<jacoco-maven-plugin.version>0.8.4</jacoco-maven-plugin.version>
+		<formatter-maven-plugin.version>2.19.0</formatter-maven-plugin.version>
 	</properties>
 
 	<build>
@@ -104,6 +102,10 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-release-plugin</artifactId>
+				<version>${maven-release-plugin.version}</version>
+				<configuration>
+					<arguments>-Dossrh</arguments>
+				</configuration>
 			</plugin>
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
@@ -121,10 +123,65 @@
 					<encoding>UTF-8</encoding>
 				</configuration>
 			</plugin>
+			<plugin>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<version>${maven-dependency-plugin.version}</version>
+			</plugin>
+			<plugin>
+				<groupId>com.diffplug.spotless</groupId>
+				<artifactId>spotless-maven-plugin</artifactId>
+				<version>2.22.5</version>
+				<configuration>
+					<formats>
+						<format>
+							<includes>
+								<include>src/main/*.xml</include>
+								<include>pom.xml</include>
+							</includes>
+							<eclipseWtp>
+								<type>XML</type>
+								<version>4.7.3a</version>
+							</eclipseWtp>
+						</format>
 
+						<format>
+							<includes>
+								<include>**/*.json</include>
+								<include>**/*.yml</include>
+								<include>**/*.yaml</include>
+								<include>**/*.ts</include>
+								<include>**/*.js</include>
+							</includes>
+							<excludes>
+								<!-- needed for CI -->
+								<exclude>.m2/**</exclude>
+							</excludes>
+							<prettier>
+								<prettierVersion>2.5.1</prettierVersion>
+								<!-- <configFile>${project.basedir}/prettier.config.js</configFile> -->
+							</prettier>
+						</format>
+					</formats>
+					<java>
+						<toggleOffOn />
+						<importOrder>
+							<order>java,javax,org,com</order>
+						</importOrder>
+						<googleJavaFormat>
+							<version>1.8</version>
+							<style>GOOGLE</style>
+						</googleJavaFormat>
+						<!-- <licenseHeader> -->
+						<!-- <file>${basedir}/src/etc/header.txt</file> -->
+						<!-- </licenseHeader> -->
+					</java>
+					<!-- <ratchetFrom>origin/master</ratchetFrom> -->
+				</configuration>
+			</plugin>
 			<plugin>
 				<groupId>org.owasp</groupId>
 				<artifactId>dependency-check-maven</artifactId>
+				<version>${dependency-check-maven.version}</version>
 				<executions>
 					<execution>
 						<goals>
@@ -147,6 +204,7 @@
 
 			<plugin>
 				<artifactId>maven-source-plugin</artifactId>
+				<version>${maven-source-plugin.version}</version>
 				<executions>
 					<execution>
 						<id>attach-sources</id>
@@ -159,6 +217,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>${maven-javadoc-plugin.version}</version>
 				<executions>
 					<execution>
 						<id>attach-javadocs</id>
@@ -175,6 +234,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
+				<version>${maven-jar-plugin.version}</version>
 				<executions>
 					<execution>
 						<goals>
@@ -182,10 +242,19 @@
 						</goals>
 					</execution>
 				</executions>
+				<configuration>
+					<archive>
+						<manifest>
+							<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+							<addDefaultSpecificationEntries>false</addDefaultSpecificationEntries>
+						</manifest>
+					</archive>
+				</configuration>
 			</plugin>
 			<plugin>
 				<groupId>org.jacoco</groupId>
 				<artifactId>jacoco-maven-plugin</artifactId>
+				<version>${jacoco-maven-plugin.version}</version>
 				<executions>
 					<execution>
 						<id>prepare-agent</id>
@@ -194,10 +263,18 @@
 						</goals>
 					</execution>
 				</executions>
-			</plugin>
-			<plugin>
-				<groupId>org.eluder.coveralls</groupId>
-				<artifactId>coveralls-maven-plugin</artifactId>
+				<configuration>
+					<excludes>
+						<!-- Spring specific classes -->
+						<exclude>**/*Configuration.*</exclude>
+						<exclude>**/*Application.*</exclude>
+						<!-- Exceptions -->
+						<exclude>**/*Exception.*</exclude>
+						<!-- proto-generated classes -->
+						<exclude>**/gen/*</exclude>
+						<exclude>**/generated/*</exclude>
+					</excludes>
+				</configuration>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -226,67 +303,6 @@
 					</includes>
 				</configuration>
 			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-shade-plugin</artifactId>
-				<version>${maven-shade-plugin.version}</version>
-				<executions>
-					<execution>
-						<phase>package</phase>
-						<goals>
-							<goal>shade</goal>
-						</goals>
-						<configuration>
-							<relocations>
-								<relocation>
-									<pattern>io.vavr</pattern>
-									<shadedPattern>com.mercateo.spring.security.jwt.relocated.io.vavr</shadedPattern>
-								</relocation>
-							</relocations>
-							<artifactSet>
-								<includes>
-									<include>io.vavr:*</include>
-								</includes>
-							</artifactSet>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<groupId>com.diffplug.spotless</groupId>
-				<artifactId>spotless-maven-plugin</artifactId>
-				<version>2.22.5</version>
-				<configuration>
-					<formats>
-						<format>
-							<includes>
-								<include>src/main/*.xml</include>
-								<include>pom.xml</include>
-							</includes>
-							<eclipseWtp>
-								<type>XML</type>
-								<version>4.7.3a</version>
-							</eclipseWtp>
-						</format>
-
-					</formats>
-					<java>
-						<toggleOffOn />
-						<importOrder>
-							<order>java,javax,org,com</order>
-						</importOrder>
-						<googleJavaFormat>
-							<style>GOOGLE</style>
-							<version>1.8</version>
-						</googleJavaFormat>
-
-						<!-- <licenseHeader> -->
-						<!-- <file>${basedir}/src/etc/header.txt</file> -->
-						<!-- </licenseHeader> -->
-					</java>
-					<!-- <ratchetFrom>origin/master</ratchetFrom> -->
-				</configuration>
-			</plugin>
 		</plugins>
 	</build>
 
@@ -300,77 +316,47 @@
 		<dependency>
 			<groupId>javax.servlet</groupId>
 			<artifactId>javax.servlet-api</artifactId>
+			<!--suppress MavenPackageUpdate -->
 			<version>${javax.servlet-api.version}</version>
 			<scope>provided</scope>
 		</dependency>
+		<!-- Spring -->
 		<dependency>
-			<groupId>org.immutables</groupId>
-			<artifactId>value</artifactId>
-			<version>${immutables.version}</version>
-			<scope>provided</scope>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-beans</artifactId>
+			<version>${spring.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>org.immutables</groupId>
-			<artifactId>value-annotations</artifactId>
-			<version>${immutables.version}</version>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-context</artifactId>
+			<version>${spring.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>org.immutables.vavr</groupId>
-			<artifactId>vavr-encodings</artifactId>
-			<version>${vavr-encodings.version}</version>
-			<exclusions>
-				<exclusion>
-					<artifactId>value</artifactId>
-					<groupId>org.immutables</groupId>
-				</exclusion>
-				<exclusion>
-					<groupId>io.vavr</groupId>
-					<artifactId>vavr</artifactId>
-				</exclusion>
-			</exclusions>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-core</artifactId>
+			<version>${spring.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>com.mercateo</groupId>
-			<artifactId>default-immutables</artifactId>
-			<version>${default-immutables.version}</version>
-			<exclusions>
-				<exclusion>
-					<artifactId>value</artifactId>
-					<groupId>org.immutables</groupId>
-				</exclusion>
-				<exclusion>
-					<artifactId>value-annotations</artifactId>
-					<groupId>org.immutables</groupId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.immutables.vavr</groupId>
-					<artifactId>vavr-encodings</artifactId>
-				</exclusion>
-			</exclusions>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-web</artifactId>
+			<version>${spring.version}</version>
 		</dependency>
-
 		<dependency>
 			<groupId>org.springframework.security</groupId>
 			<artifactId>spring-security-web</artifactId>
 			<version>${spring-security.version}</version>
-			<exclusions>
-				<exclusion>
-					<groupId>aopalliance</groupId>
-					<artifactId>aopalliance</artifactId>
-				</exclusion>
-			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-core</artifactId>
+			<version>${spring-security.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.security</groupId>
 			<artifactId>spring-security-config</artifactId>
 			<version>${spring-security.version}</version>
-			<exclusions>
-				<exclusion>
-					<groupId>aopalliance</groupId>
-					<artifactId>aopalliance</artifactId>
-				</exclusion>
-			</exclusions>
 		</dependency>
+		<!-- jackson -->
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-databind</artifactId>
@@ -381,6 +367,7 @@
 			<artifactId>jackson-annotations</artifactId>
 			<version>${jackson.version}</version>
 		</dependency>
+		<!-- jwt -->
 		<dependency>
 			<groupId>com.auth0</groupId>
 			<artifactId>java-jwt</artifactId>
@@ -392,24 +379,15 @@
 			<version>${jwks-rsa.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>io.vavr</groupId>
-			<artifactId>vavr</artifactId>
-			<version>${vavr.version}</version>
+			<groupId>commons-codec</groupId>
+			<artifactId>commons-codec</artifactId>
+			<version>${commons-codec.version}</version>
 		</dependency>
+		<!-- logging -->
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
 			<version>${slf4j-api.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>com.google.guava</groupId>
-			<artifactId>guava</artifactId>
-			<version>27.1-jre</version>
-		</dependency>
-		<dependency>
-			<groupId>commons-codec</groupId>
-			<artifactId>commons-codec</artifactId>
-			<version>1.12</version>
 		</dependency>
 		<!-- test -->
 		<dependency>
@@ -452,18 +430,6 @@
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-webmvc</artifactId>
 			<version>${spring.version}</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>ch.qos.logback</groupId>
-			<artifactId>logback-classic</artifactId>
-			<version>${logback-classic.version}</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>jcl-over-slf4j</artifactId>
-			<version>${slf4j-api.version}</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>

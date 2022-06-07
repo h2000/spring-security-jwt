@@ -18,16 +18,21 @@ package com.mercateo.spring.security.jwt.token.extractor;
 import com.mercateo.spring.security.jwt.token.claim.JWTClaim;
 import com.mercateo.spring.security.jwt.token.exception.MissingClaimException;
 import com.mercateo.spring.security.jwt.token.exception.MissingSignatureException;
-import io.vavr.Value;
-import io.vavr.collection.HashSet;
-import io.vavr.collection.List;
-import lombok.val;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
-class ClaimsValidator {
-  private final Value<String> claims;
+class RequiredClaimNamesValidator {
 
-  ClaimsValidator(Value<String> claims) {
-    this.claims = claims;
+  private final Set<String> requiredClaimNames;
+
+  RequiredClaimNamesValidator(Set<String> requiredClaimNames) {
+    this.requiredClaimNames =
+        Collections.unmodifiableSet(
+            Objects.requireNonNull(requiredClaimNames, "requiredClaimNames"));
   }
 
   void ensureAtLeastOneVerifiedToken(int verifiedCount) {
@@ -37,14 +42,14 @@ class ClaimsValidator {
   }
 
   void ensurePresenceOfRequiredClaims(List<JWTClaim> claims) {
-    val existingClaimNames = claims.groupBy(JWTClaim::name).keySet();
-    val requiredClaimNames = HashSet.ofAll(this.claims);
+    final Set<String> existingClaimNames =
+        claims.stream().map(JWTClaim::name).collect(Collectors.toSet());
+    final Set<String> notExistingClaimNames = new HashSet<>(requiredClaimNames);
+    notExistingClaimNames.removeAll(existingClaimNames);
 
-    val missingRequiredClaimNames = requiredClaimNames.removeAll(existingClaimNames);
-
-    if (missingRequiredClaimNames.nonEmpty()) {
+    if (!notExistingClaimNames.isEmpty()) {
       throw new MissingClaimException(
-          "missing required claim(s): " + String.join(", ", missingRequiredClaimNames));
+          "missing required claim(s): " + String.join(", ", notExistingClaimNames));
     }
   }
 }

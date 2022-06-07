@@ -13,33 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.mercateo.spring.security.jwt.token.claim;
+package com.mercateo.spring.security.jwt.support;
 
-import com.mercateo.immutables.ValueStyle;
-import java.util.Optional;
-import org.immutables.value.Value;
+public interface CheckedFunction<A, B> {
 
-@Value.Immutable
-@ValueStyle
-public interface _JWTClaim {
-  String name();
-
-  Object value();
-
-  @Value.Default
-  default String issuer() {
-    return "";
-  }
-
-  @Value.Default
-  default boolean verified() {
-    return false;
-  }
-
-  Optional<JWTClaim> innerClaim();
-
-  @Value.Default
-  default int depth() {
-    return 0;
-  }
+  B apply(A a) throws Throwable;
 }

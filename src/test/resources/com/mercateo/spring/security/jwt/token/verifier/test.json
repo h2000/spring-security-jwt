@@ -17,11 +17,7 @@
               "properties": {
                 "country": {
                   "type": "string",
-                  "enum": [
-                    "DE",
-                    "GB",
-                    "FR"
-                  ]
+                  "enum": ["DE", "GB", "FR"]
                 },
                 "line1": {
                   "type": "string",
@@ -52,11 +48,7 @@
                   "maxLength": 255
                 }
               },
-              "required": [
-                "country",
-                "line1",
-                "locality"
-              ]
+              "required": ["country", "line1", "locality"]
             },
             "name": {
               "type": "string",
@@ -67,11 +59,7 @@
               "maxLength": 255
             }
           },
-          "required": [
-            "address",
-            "name",
-            "vatId"
-          ]
+          "required": ["address", "name", "vatId"]
         },
         "rel": "create-company",
         "mediaType": "application/json",

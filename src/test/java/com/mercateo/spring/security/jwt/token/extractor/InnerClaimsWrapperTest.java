@@ -18,7 +18,8 @@ package com.mercateo.spring.security.jwt.token.extractor;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.mercateo.spring.security.jwt.token.claim.JWTClaim;
-import io.vavr.collection.List;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Map;
 import org.junit.Before;
 import org.junit.Test;
@@ -42,7 +43,7 @@ public class InnerClaimsWrapperTest {
         JWTClaim.builder().name("jwtClaim3").value("value3").issuer("iss").build();
 
     final Map<String, JWTClaim> result =
-        uut.wrapInnerClaims(List.of(jwtClaim1, jwtClaim2, jwtClaim3));
+        uut.wrapInnerClaims(Arrays.asList(jwtClaim1, jwtClaim2, jwtClaim3));
     assertThat(result).isNotNull().isNotEmpty().hasSize(3);
     assertThat(result).containsOnlyKeys("jwtClaim1", "jwtClaim2", "jwtClaim3");
   }
@@ -52,17 +53,18 @@ public class InnerClaimsWrapperTest {
     final JWTClaim jwtClaim1 =
         JWTClaim.builder().name("jwtClaim1").value("value1").issuer("iss").build();
 
-    final Map<String, JWTClaim> result = uut.wrapInnerClaims(List.of(jwtClaim1, jwtClaim1));
+    final Map<String, JWTClaim> result = uut.wrapInnerClaims(Arrays.asList(jwtClaim1, jwtClaim1));
     assertThat(result).isNotNull().isNotEmpty().hasSize(1);
     assertThat(result).containsOnlyKeys("jwtClaim1");
   }
 
   @Test
   public void givenNoClaims_whenWrapInnerClaims_thenEmptyMap() {
-    final Map<String, JWTClaim> result = uut.wrapInnerClaims(List.empty());
+    final Map<String, JWTClaim> result = uut.wrapInnerClaims(Collections.emptyList());
     assertThat(result).isNotNull().isEmpty();
   }
 
+  @SuppressWarnings("ConstantConditions")
   @Test(expected = NullPointerException.class)
   public void givenNull_whenWrapInnerClaims_then() {
     uut.wrapInnerClaims(null);

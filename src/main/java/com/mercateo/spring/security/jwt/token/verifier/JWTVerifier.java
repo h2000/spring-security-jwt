@@ -27,7 +27,6 @@ import com.auth0.jwt.interfaces.Claim;
 import com.auth0.jwt.interfaces.Clock;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.auth0.jwt.interfaces.RSAKeyProvider;
-import com.google.common.annotations.VisibleForTesting;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
@@ -57,7 +56,7 @@ public final class JWTVerifier {
   /**
    * Initialize a JWTVerifier instance using the given Algorithm.
    *
-   * @param RSA key provider for the RSA algorithm.
+   * @param rsaKeyProvider key provider for the RSA algorithm.
    * @return a JWTVerifier.Verification instance to configure.
    * @throws IllegalArgumentException if the provided algorithm is null.
    */
@@ -85,7 +84,6 @@ public final class JWTVerifier {
     return jwt;
   }
 
-  @VisibleForTesting
   Algorithm getAlgorithm(DecodedJWT jwt) throws AlgorithmMismatchException {
     switch (jwt.getAlgorithm().toLowerCase()) {
       case "rs256":
@@ -137,7 +135,7 @@ public final class JWTVerifier {
     } else if (value instanceof Object[]) {
       List<Object> claimArr = Arrays.asList(claim.as(Object[].class));
       List<Object> valueArr = Arrays.asList((Object[]) value);
-      isValid = claimArr.containsAll(valueArr);
+      isValid = new HashSet<>(claimArr).containsAll(valueArr);
     }
 
     if (!isValid) {
@@ -148,7 +146,7 @@ public final class JWTVerifier {
 
   private void assertValidDateClaim(Date date, long leeway, boolean shouldBeFuture) {
     Date today = clock.getToday();
-    today.setTime((long) Math.floor((today.getTime() / 1000) * 1000)); // truncate millis
+    today.setTime((long) Math.floor((today.getTime() / 1000.0) * 1000)); // truncate millis
     if (shouldBeFuture) {
       assertDateIsFuture(date, leeway, today);
     } else {
@@ -188,6 +186,7 @@ public final class JWTVerifier {
   }
 
   /** The Verification class holds the Claims required by a JWT to be valid. */
+  @SuppressWarnings({"UnusedReturnValue", "unused"})
   public static class BaseVerification {
     private final RSAKeyProvider rsaKeyProvider;
 
@@ -212,7 +211,7 @@ public final class JWTVerifier {
      * @return this same Verification instance.
      */
     public BaseVerification withAudience(String... audience) {
-      val audiences = new HashSet<String>(Arrays.asList(audience));
+      val audiences = new HashSet<>(Arrays.asList(audience));
       requireClaim(PublicClaims.AUDIENCE, audiences);
       return this;
     }

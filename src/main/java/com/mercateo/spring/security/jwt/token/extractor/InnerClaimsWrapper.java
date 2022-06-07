@@ -15,19 +15,28 @@
  */
 package com.mercateo.spring.security.jwt.token.extractor;
 
+import com.mercateo.spring.security.jwt.support.CollectionUtils;
+import com.mercateo.spring.security.jwt.support.Tuple2;
 import com.mercateo.spring.security.jwt.token.claim.JWTClaim;
-import io.vavr.collection.List;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 class InnerClaimsWrapper {
 
   Map<String, JWTClaim> wrapInnerClaims(List<JWTClaim> claims) {
-    return claims.groupBy(JWTClaim::name).mapValues(this::wrapGroupedClaims).toJavaMap();
+
+    final Map<String, List<JWTClaim>> grouped =
+        claims.stream().collect(Collectors.groupingBy(JWTClaim::name));
+    return grouped.entrySet().stream()
+        .map(x -> Tuple2.of(x.getKey(), wrapGroupedClaims(x.getValue())))
+        .collect(Collectors.toMap(t -> t._1, t -> t._2));
+    // return claims.groupBy(JWTClaim::name).mapValues(this::wrapGroupedClaims).toJavaMap();
   }
 
   private JWTClaim wrapGroupedClaims(List<JWTClaim> claims) {
-    final List<JWTClaim> reverse = claims.reverse();
+    final List<JWTClaim> reverse = CollectionUtils.reverseList(claims);
     JWTClaim innerClaim = null;
     for (JWTClaim jwtClaim : reverse) {
       innerClaim = buildJwtClaim(jwtClaim, innerClaim);

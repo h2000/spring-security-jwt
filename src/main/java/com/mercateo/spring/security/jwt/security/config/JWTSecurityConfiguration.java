@@ -43,7 +43,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @AllArgsConstructor
 public class JWTSecurityConfiguration extends WebSecurityConfigurerAdapter {
 
-  private static JWTSecurityConfig defaultConfig = JWTSecurityConfig.builder().build();
+  private static final JWTSecurityConfig defaultConfig = JWTSecurityConfig.builder().build();
 
   private final Optional<JWTSecurityConfig> config;
 
@@ -68,7 +68,7 @@ public class JWTSecurityConfiguration extends WebSecurityConfigurerAdapter {
         Collections.singletonList(jwtAuthenticationProvider(hierarchicalJwtClaimsExtractor())));
   }
 
-  public JWTAuthenticationTokenFilter authenticationTokenFilterBean() throws Exception {
+  public JWTAuthenticationTokenFilter authenticationTokenFilterBean() {
     JWTSecurityConfig jwtSecurityConfig = jwtSecurityConfig();
 
     JWTAuthenticationTokenFilter authenticationTokenFilter = new JWTAuthenticationTokenFilter();
@@ -76,12 +76,11 @@ public class JWTSecurityConfiguration extends WebSecurityConfigurerAdapter {
     authenticationTokenFilter.setAuthenticationSuccessHandler(
         new JWTAuthenticationSuccessHandler());
     if (!jwtSecurityConfig.anonymousPaths().isEmpty()) {
-      authenticationTokenFilter.addUnauthenticatedPaths(
-          jwtSecurityConfig.anonymousPaths().toJavaSet());
+      authenticationTokenFilter.addUnauthenticatedPaths(jwtSecurityConfig.anonymousPaths());
     }
     jwtSecurityConfig
         .authenticationFailureHandler()
-        .forEach(authenticationTokenFilter::setAuthenticationFailureHandler);
+        .ifPresent(authenticationTokenFilter::setAuthenticationFailureHandler);
 
     return authenticationTokenFilter;
   }
@@ -138,9 +137,7 @@ public class JWTSecurityConfiguration extends WebSecurityConfigurerAdapter {
   }
 
   private String[] getUnauthenticatedPaths() {
-    return config
-        .map(JWTSecurityConfig::anonymousPaths)
-        .map(list -> list.toJavaArray(String[]::new))
-        .orElse(new String[0]);
+    return config.map(JWTSecurityConfig::anonymousPaths).orElse(Collections.emptySet()).stream()
+        .toArray(String[]::new);
   }
 }

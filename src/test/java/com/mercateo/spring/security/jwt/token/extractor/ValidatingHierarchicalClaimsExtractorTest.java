@@ -26,6 +26,7 @@ import com.auth0.jwt.JWTCreator;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.mercateo.spring.security.jwt.JWKProvider;
+import com.mercateo.spring.security.jwt.support.Try;
 import com.mercateo.spring.security.jwt.token.claim.JWTClaim;
 import com.mercateo.spring.security.jwt.token.claim.JWTClaims;
 import com.mercateo.spring.security.jwt.token.config.JWTConfig;
@@ -34,11 +35,10 @@ import com.mercateo.spring.security.jwt.token.exception.InvalidTokenException;
 import com.mercateo.spring.security.jwt.token.exception.MissingClaimException;
 import com.mercateo.spring.security.jwt.token.exception.MissingSignatureException;
 import com.mercateo.spring.security.jwt.token.keyset.JWTKeyset;
-import io.vavr.control.Option;
-import io.vavr.control.Try;
 import java.lang.reflect.Method;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Optional;
 import lombok.val;
 import org.junit.Before;
 import org.junit.Test;
@@ -73,9 +73,9 @@ public class ValidatingHierarchicalClaimsExtractorTest {
     val securityConfig = securityConfig();
 
     jwks =
-        Option.of(securityConfig)
+        Optional.of(securityConfig)
             .flatMap(JWTConfig::jwtKeyset)
-            .getOrElseThrow(() -> new IllegalStateException("could not fetch jwks mock"));
+            .orElseThrow(() -> new IllegalStateException("could not fetch jwks mock"));
     when(jwks.getKeysetForId(KEY_ID)).thenReturn(Try.success(jwk));
 
     uut = new ValidatingHierarchicalClaimsExtractor(securityConfig);
@@ -141,9 +141,9 @@ public class ValidatingHierarchicalClaimsExtractorTest {
     val tokenString = builder.sign(algorithm);
 
     jwks =
-        Option.of(securityConfig)
+        Optional.of(securityConfig)
             .flatMap(JWTConfig::jwtKeyset)
-            .getOrElseThrow(() -> new IllegalStateException("could not fetch jwks mock"));
+            .orElseThrow(() -> new IllegalStateException("could not fetch jwks mock"));
     when(jwks.getKeysetForId(KEY_ID)).thenReturn(Try.success(jwk));
 
     val claims = uut.extractClaims(tokenString);

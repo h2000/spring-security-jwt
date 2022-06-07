@@ -16,31 +16,35 @@
 package com.mercateo.spring.security.jwt.token.extractor;
 
 import com.auth0.jwt.interfaces.Claim;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.BooleanNode;
 import com.fasterxml.jackson.databind.node.DoubleNode;
 import com.fasterxml.jackson.databind.node.IntNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
-import io.vavr.Function1;
-import io.vavr.Tuple;
-import io.vavr.collection.Array;
-import io.vavr.collection.HashMap;
-import io.vavr.collection.Map;
-import io.vavr.collection.Stream;
+import com.mercateo.spring.security.jwt.support.CollectionUtils;
+import com.mercateo.spring.security.jwt.support.Tuple2;
 import java.lang.reflect.Field;
-import lombok.val;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 class ClaimExtractor {
 
-  private final Map<Class<?>, Function1<Object, Object>> accessors =
-      HashMap.ofEntries( //
-          Tuple.of(TextNode.class, (node) -> ((TextNode) node).asText()), //
-          Tuple.of(IntNode.class, (node) -> ((IntNode) node).asInt()), //
-          Tuple.of(DoubleNode.class, (node) -> ((DoubleNode) node).asDouble()), //
-          Tuple.of(BooleanNode.class, (node) -> ((BooleanNode) node).asBoolean()), //
-          Tuple.of(ArrayNode.class, (node) -> extractArray((ArrayNode) node)), //
-          Tuple.of(ObjectNode.class, (node) -> extractObject((ObjectNode) node)));
+  private final Map<Class<?>, Function<Object, Object>> accessors =
+      CollectionUtils.mapOfTuples( //
+          Tuple2.of(TextNode.class, (node) -> ((TextNode) node).asText()), //
+          Tuple2.of(IntNode.class, (node) -> ((IntNode) node).asInt()), //
+          Tuple2.of(DoubleNode.class, (node) -> ((DoubleNode) node).asDouble()), //
+          Tuple2.of(BooleanNode.class, (node) -> ((BooleanNode) node).asBoolean()), //
+          Tuple2.of(ArrayNode.class, (node) -> extractArray((ArrayNode) node)), //
+          Tuple2.of(ObjectNode.class, (node) -> extractObject((ObjectNode) node)));
 
   Object extract(Claim claim) {
     final Class<? extends Claim> claimClass = claim.getClass();
@@ -57,26 +61,34 @@ class ClaimExtractor {
   }
 
   private Object extractNode(Object rawClaim) {
-    val accessorOption = accessors.get(rawClaim.getClass());
-    return accessorOption.map(accessor -> accessor.apply(rawClaim)).getOrNull();
+    Function<Object, Object> accessorOption = accessors.get(rawClaim.getClass());
+    if (accessorOption == null) {
+      return null;
+    }
+    return accessorOption.apply(rawClaim);
   }
 
   private Object extractArray(ArrayNode node) {
-    return create(node.elements()).map(this::extractNode).collect(Array.collector()).toJavaArray();
+    return asStream(node.elements()).map(this::extractNode).toArray();
   }
 
   private Object extractObject(ObjectNode node) {
-    return create(node.fields())
-        .groupBy(java.util.Map.Entry::getKey)
-        .mapValues(Stream::head)
-        .mapValues(java.util.Map.Entry::getValue)
-        .mapValues(this::extractNode)
-        .toJavaMap();
+    final Map<String, List<Entry<String, JsonNode>>> groupedByKey =
+        asStream(node.fields()).collect(Collectors.groupingBy(Entry::getKey));
+
+    return CollectionUtils.mapOfTuples(
+        groupedByKey.entrySet().stream()
+            .map(
+                e -> {
+                  final Entry<String, JsonNode> head = e.getValue().get(0);
+                  final Object jsonNode = extractNode(head.getValue());
+                  return Tuple2.of(e.getKey(), jsonNode);
+                })
+            .collect(Collectors.toList()));
   }
 
-  private static <T> Stream<T> create(java.util.Iterator<? extends T> iterator) {
-    return iterator.hasNext()
-        ? Stream.cons(iterator.next(), () -> create(iterator))
-        : Stream.Empty.instance();
+  public static <T> Stream<T> asStream(Iterator<T> sourceIterator) {
+    final Iterable<T> iterable = () -> sourceIterator;
+    return StreamSupport.stream(iterable.spliterator(), false);
   }
 }

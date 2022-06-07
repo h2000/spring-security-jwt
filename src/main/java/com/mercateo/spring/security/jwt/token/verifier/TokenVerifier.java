@@ -15,36 +15,30 @@
  */
 package com.mercateo.spring.security.jwt.token.verifier;
 
-import static java.lang.Boolean.FALSE;
-
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.mercateo.spring.security.jwt.token.exception.InvalidTokenException;
-import io.vavr.Function2;
-import io.vavr.control.Option;
-import io.vavr.control.Try;
+import java.util.Optional;
 import lombok.AllArgsConstructor;
-import lombok.val;
 
 @AllArgsConstructor
 public class TokenVerifier {
 
-  private final Option<JWTVerifier> verifier;
+  private final Optional<JWTVerifier> verifier;
 
   public boolean verifyToken(DecodedJWT token) {
-    val verifyToken = Function2.of(this::verify).apply(token);
 
-    return verifier //
+    return verifier
         .filter(ignore -> !"none".equals(token.getAlgorithm()))
-        .map(verifyToken)
-        .getOrElse(FALSE);
+        .map(x -> verify(token, x))
+        .orElse(false);
   }
 
   private boolean verify(DecodedJWT token, JWTVerifier verifier) {
-    return Try.of(() -> verifier.verify(token.getToken())) //
-        .onFailure(
-            e -> {
-              throw new InvalidTokenException("could not verify token", e);
-            })
-        .isSuccess();
+    try {
+      verifier.verify(token.getToken());
+      return true;
+    } catch (RuntimeException e) {
+      throw new InvalidTokenException("could not verify token", e);
+    }
   }
 }

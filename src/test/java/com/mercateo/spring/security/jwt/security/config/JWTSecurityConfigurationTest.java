@@ -20,7 +20,6 @@ import static org.mockito.Mockito.mock;
 
 import com.mercateo.spring.security.jwt.token.extractor.ValidatingHierarchicalClaimsExtractor;
 import com.mercateo.spring.security.jwt.token.keyset.JWTKeyset;
-import javax.servlet.http.HttpServletRequest;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,7 +29,6 @@ import org.springframework.security.web.FilterChainProxy;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -67,21 +65,13 @@ public class JWTSecurityConfigurationTest {
     @Bean
     public CorsFilter corsFilter() {
       final CorsConfiguration config = new CorsConfiguration();
-
       config.addAllowedOrigin("*");
       config.addAllowedHeader("*");
       config.addAllowedMethod("GET");
       config.addAllowedMethod("PUT");
       config.addAllowedMethod("POST");
 
-      return new CorsFilter(
-          new CorsConfigurationSource() {
-
-            @Override
-            public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
-              return config;
-            }
-          });
+      return new CorsFilter(request -> config);
     }
   }
 }

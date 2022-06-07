@@ -21,11 +21,12 @@ import static org.mockito.Mockito.when;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
+import com.mercateo.spring.security.jwt.support.CollectionUtils;
+import com.mercateo.spring.security.jwt.support.Tuple2;
 import com.mercateo.spring.security.jwt.token.claim.JWTClaim;
 import com.mercateo.spring.security.jwt.token.claim.JWTClaims;
 import com.mercateo.spring.security.jwt.token.exception.InvalidTokenException;
 import com.mercateo.spring.security.jwt.token.extractor.ValidatingHierarchicalClaimsExtractor;
-import io.vavr.collection.HashMap;
 import lombok.val;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -33,6 +34,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 @RunWith(MockitoJUnitRunner.class)
 public class JWTAuthenticationProviderTest {
@@ -47,9 +49,9 @@ public class JWTAuthenticationProviderTest {
     val tokenContainer = new JWTAuthenticationToken(tokenString);
 
     final java.util.Map<String, JWTClaim> claimsMap =
-        HashMap.of( //
-                "bar", JWTClaim.builder().value("baz").name("bar").build())
-            .toJavaMap();
+        CollectionUtils.mapOfTuples(
+            Tuple2.of( //
+                "bar", JWTClaim.builder().value("baz").name("bar").build()));
 
     JWTClaims claims = JWTClaims.builder().claims(claimsMap).token(JWT.decode(tokenString)).build();
 
@@ -65,18 +67,18 @@ public class JWTAuthenticationProviderTest {
 
   @Test
   public void shouldMapScopesToGrantedAuthorities() {
-    val tokenString = JWT.create().sign(Algorithm.none());
-    val tokenContainer = new JWTAuthenticationToken(tokenString);
+    final String tokenString = JWT.create().sign(Algorithm.none());
+    final JWTAuthenticationToken tokenContainer = new JWTAuthenticationToken(tokenString);
 
     final java.util.Map<String, JWTClaim> claimsMap =
-        HashMap.of( //
-                "scope", JWTClaim.builder().name("scope").value("foo bar").build())
-            .toJavaMap();
+        CollectionUtils.mapOfTuples(
+            Tuple2.of( //
+                "scope", JWTClaim.builder().name("scope").value("foo bar").build()));
 
     JWTClaims claims = JWTClaims.builder().claims(claimsMap).token(JWT.decode(tokenString)).build();
     when(hierarchicalJWTClaimsExtractor.extractClaims(tokenString)).thenReturn(claims);
 
-    val userDetails = uut.retrieveUser("<username>", tokenContainer);
+    final UserDetails userDetails = uut.retrieveUser("<username>", tokenContainer);
 
     assertThat(userDetails).isNotNull();
     assertThat(userDetails.getUsername()).isNull();
@@ -92,10 +94,10 @@ public class JWTAuthenticationProviderTest {
     val tokenContainer = new JWTAuthenticationToken(tokenString);
 
     final java.util.Map<String, JWTClaim> claimsMap =
-        HashMap.of( //
+        CollectionUtils.mapOfTuples(
+            Tuple2.of( //
                 "roles",
-                JWTClaim.builder().name("roles").value(new Object[] {"foo", "bar"}).build())
-            .toJavaMap();
+                JWTClaim.builder().name("roles").value(new Object[] {"foo", "bar"}).build()));
 
     JWTClaims claims = JWTClaims.builder().claims(claimsMap).token(JWT.decode(tokenString)).build();
     when(hierarchicalJWTClaimsExtractor.extractClaims(tokenString)).thenReturn(claims);

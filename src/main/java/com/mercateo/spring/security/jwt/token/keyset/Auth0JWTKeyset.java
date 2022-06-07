@@ -19,13 +19,13 @@ import com.auth0.jwk.GuavaCachedJwkProvider;
 import com.auth0.jwk.Jwk;
 import com.auth0.jwk.JwkProvider;
 import com.auth0.jwk.UrlJwkProvider;
-import io.vavr.control.Try;
+import com.mercateo.spring.security.jwt.support.Try;
 
 public class Auth0JWTKeyset implements JWTKeyset {
 
   private final String auth0Domain;
 
-  private JwkProvider provider;
+  private final JwkProvider provider;
 
   public Auth0JWTKeyset(String auth0Domain) {
     this.auth0Domain = auth0Domain;
