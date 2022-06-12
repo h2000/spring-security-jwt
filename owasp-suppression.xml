@@ -1,14 +1,62 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.2.xsd">
-    <suppress>
-        <cpe>cpe:/a:pivotal_software:spring_security:5.1.5</cpe>
-    </suppress>
-    <suppress>
-        <notes><![CDATA[
-      This threat can be ignored for this library as it does not direclty use "Content-Disposition" header.
-      ]]></notes>
-        <cve>CVE-2020-5398</cve>
-        <cve>CVE-2020-5408</cve>
-        <cve>CVE-2016-1000027</cve>
-    </suppress>
+  <suppress>
+    <cpe>cpe:/a:pivotal_software:spring_security:5.1.5</cpe>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+       temporarily ignore these CVE until updates went through
+       ]]></notes>
+    <filePath regex="true">.*\bspring-aop.*\b</filePath>
+    <cve>CVE-2016-1000027</cve>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+       temporarily ignore these CVE until updates went through
+       ]]></notes>
+    <filePath regex="true">.*\bspring-core.*\b</filePath>
+    <cve>CVE-2016-1000027</cve>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+       temporarily ignore these CVE until updates went through
+       ]]></notes>
+    <filePath regex="true">.*\bspring-jcl.*\b</filePath>
+    <cve>CVE-2016-1000027</cve>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+       temporarily ignore these CVE until updates went through
+       ]]></notes>
+    <filePath regex="true">.*\bspring-web.*\b</filePath>
+    <cve>CVE-2016-1000027</cve>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+       temporarily ignore these CVE until updates went through
+       ]]></notes>
+    <filePath regex="true">.*\bspring-beans.*\b</filePath>
+    <cve>CVE-2016-1000027</cve>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+       temporarily ignore these CVE until updates went through
+       ]]></notes>
+    <filePath regex="true">.*\bspring-context.*\b</filePath>
+    <cve>CVE-2016-1000027</cve>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+       temporarily ignore these CVE until updates went through
+       ]]></notes>
+    <filePath regex="true">.*\bspring-expression.*\b</filePath>
+    <cve>CVE-2016-1000027</cve>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+       temporarily ignore these CVE until updates went through
+       ]]></notes>
+    <filePath regex="true">.*\bsecurity-crypto.*\b</filePath>
+    <cve>CVE-2020-5408</cve>
+  </suppress>
 </suppressions>

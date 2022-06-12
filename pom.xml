@@ -197,7 +197,7 @@
 					<skipTestScope>true</skipTestScope>
 					<skipSystemScope>true</skipSystemScope>
 					<suppressionFiles>
-						<suppressionFile>owasp-suppression.xml</suppressionFile>
+						<suppressionFile>${project.basedir}/owasp-suppression.xml</suppressionFile>
 					</suppressionFiles>
 				</configuration>
 			</plugin>
