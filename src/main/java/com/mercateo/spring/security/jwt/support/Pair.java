@@ -29,13 +29,13 @@ import java.util.function.Function;
  * @param <T2> type of the 2nd element
  */
 @SuppressWarnings("unused")
-public final class Tuple2<T1, T2> {
+public final class Pair<T1, T2> {
 
   /** The 1st element of this tuple. */
-  public final T1 _1;
+  private final T1 _1;
 
   /** The 2nd element of this tuple. */
-  public final T2 _2;
+  private final T2 _2;
 
   /**
    * Constructs a tuple of two elements.
@@ -43,14 +43,14 @@ public final class Tuple2<T1, T2> {
    * @param t1 the 1st element
    * @param t2 the 2nd element
    */
-  public Tuple2(T1 t1, T2 t2) {
+  public Pair(T1 t1, T2 t2) {
     this._1 = t1;
     this._2 = t2;
   }
 
-  public static <T1, T2> Comparator<Tuple2<T1, T2>> comparator(
+  public static <T1, T2> Comparator<Pair<T1, T2>> comparator(
       Comparator<? super T1> t1Comp, Comparator<? super T2> t2Comp) {
-    return (Comparator<Tuple2<T1, T2>>)
+    return (Comparator<Pair<T1, T2>>)
         (t1, t2) -> {
           final int check1 = t1Comp.compare(t1._1, t2._1);
           if (check1 != 0) {
@@ -68,7 +68,7 @@ public final class Tuple2<T1, T2> {
    *
    * @return the 1st element of this Tuple.
    */
-  public T1 _1() {
+  public T1 first() {
     return _1;
   }
 
@@ -77,7 +77,7 @@ public final class Tuple2<T1, T2> {
    *
    * @return the 2nd element of this Tuple.
    */
-  public T2 _2() {
+  public T2 second() {
     return _2;
   }
 
@@ -100,7 +100,7 @@ public final class Tuple2<T1, T2> {
    * @return A new Tuple of same arity.
    * @throws NullPointerException if {@code mapper} is null
    */
-  public <U1, U2> Tuple2<U1, U2> map(BiFunction<? super T1, ? super T2, Tuple2<U1, U2>> mapper) {
+  public <U1, U2> Pair<U1, U2> map(BiFunction<? super T1, ? super T2, Pair<U1, U2>> mapper) {
     Objects.requireNonNull(mapper, "mapper is null");
     return mapper.apply(_1, _2);
   }
@@ -115,11 +115,11 @@ public final class Tuple2<T1, T2> {
    * @return A new Tuple of same arity.
    * @throws NullPointerException if one of the arguments is null
    */
-  public <U1, U2> Tuple2<U1, U2> map(
+  public <U1, U2> Pair<U1, U2> map(
       Function<? super T1, ? extends U1> f1, Function<? super T2, ? extends U2> f2) {
     Objects.requireNonNull(f1, "f1 is null");
     Objects.requireNonNull(f2, "f2 is null");
-    return Tuple2.of(f1.apply(_1), f2.apply(_2));
+    return Pair.of(f1.apply(_1), f2.apply(_2));
   }
 
   /**
@@ -141,10 +141,10 @@ public final class Tuple2<T1, T2> {
   public boolean equals(Object o) {
     if (o == this) {
       return true;
-    } else if (!(o instanceof Tuple2)) {
+    } else if (!(o instanceof Pair)) {
       return false;
     } else {
-      final Tuple2<?, ?> that = (Tuple2<?, ?>) o;
+      final Pair<?, ?> that = (Pair<?, ?>) o;
       return Objects.equals(this._1, that._1) && Objects.equals(this._2, that._2);
     }
   }
@@ -159,7 +159,7 @@ public final class Tuple2<T1, T2> {
     return "(" + _1 + ", " + _2 + ")";
   }
 
-  public static <T1, T2> Tuple2<T1, T2> of(T1 t1, T2 t2) {
-    return new Tuple2<>(t1, t2);
+  public static <T1, T2> Pair<T1, T2> of(T1 t1, T2 t2) {
+    return new Pair<>(t1, t2);
   }
 }

@@ -24,7 +24,7 @@ import com.fasterxml.jackson.databind.node.IntNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import com.mercateo.spring.security.jwt.support.CollectionUtils;
-import com.mercateo.spring.security.jwt.support.Tuple2;
+import com.mercateo.spring.security.jwt.support.Pair;
 import java.lang.reflect.Field;
 import java.util.Iterator;
 import java.util.List;
@@ -39,12 +39,12 @@ class ClaimExtractor {
 
   private final Map<Class<?>, Function<Object, Object>> accessors =
       CollectionUtils.mapOfTuples( //
-          Tuple2.of(TextNode.class, (node) -> ((TextNode) node).asText()), //
-          Tuple2.of(IntNode.class, (node) -> ((IntNode) node).asInt()), //
-          Tuple2.of(DoubleNode.class, (node) -> ((DoubleNode) node).asDouble()), //
-          Tuple2.of(BooleanNode.class, (node) -> ((BooleanNode) node).asBoolean()), //
-          Tuple2.of(ArrayNode.class, (node) -> extractArray((ArrayNode) node)), //
-          Tuple2.of(ObjectNode.class, (node) -> extractObject((ObjectNode) node)));
+          Pair.of(TextNode.class, (node) -> ((TextNode) node).asText()), //
+          Pair.of(IntNode.class, (node) -> ((IntNode) node).asInt()), //
+          Pair.of(DoubleNode.class, (node) -> ((DoubleNode) node).asDouble()), //
+          Pair.of(BooleanNode.class, (node) -> ((BooleanNode) node).asBoolean()), //
+          Pair.of(ArrayNode.class, (node) -> extractArray((ArrayNode) node)), //
+          Pair.of(ObjectNode.class, (node) -> extractObject((ObjectNode) node)));
 
   Object extract(Claim claim) {
     final Class<? extends Claim> claimClass = claim.getClass();
@@ -82,7 +82,7 @@ class ClaimExtractor {
                 e -> {
                   final Entry<String, JsonNode> head = e.getValue().get(0);
                   final Object jsonNode = extractNode(head.getValue());
-                  return Tuple2.of(e.getKey(), jsonNode);
+                  return Pair.of(e.getKey(), jsonNode);
                 })
             .collect(Collectors.toList()));
   }

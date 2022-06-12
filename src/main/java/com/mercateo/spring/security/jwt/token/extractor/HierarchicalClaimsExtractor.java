@@ -19,7 +19,7 @@ import static java.util.Objects.requireNonNull;
 
 import com.auth0.jwt.interfaces.Claim;
 import com.auth0.jwt.interfaces.DecodedJWT;
-import com.mercateo.spring.security.jwt.support.Tuple2;
+import com.mercateo.spring.security.jwt.support.Pair;
 import com.mercateo.spring.security.jwt.token.claim.JWTClaim;
 import com.mercateo.spring.security.jwt.token.verifier.TokenVerifier;
 import java.util.ArrayList;
@@ -79,13 +79,13 @@ class HierarchicalClaimsExtractor {
 
     return claimNames.stream()
         // for all names: lookup claim value from token by name
-        .map(claimName -> Tuple2.of(claimName, token.getClaim(claimName)))
+        .map(claimName -> Pair.of(claimName, token.getClaim(claimName)))
         // ignore claims without value (so-called null claim)
-        .filter(nameAndClaim -> !nameAndClaim._2.isNull())
+        .filter(nameAndClaim -> !nameAndClaim.second().isNull())
         .map(
             nameAndClaim -> {
-              final String claimName = nameAndClaim._1();
-              final Claim claim = nameAndClaim._2();
+              final String claimName = nameAndClaim.first();
+              final Claim claim = nameAndClaim.second();
               final String issuer =
                   requireNonNull(token.getIssuer(), "token issuer (iss) not found");
               final Object claimValue = claimExtractor.extract(claim);

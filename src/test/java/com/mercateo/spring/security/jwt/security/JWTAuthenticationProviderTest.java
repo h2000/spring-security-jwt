@@ -22,7 +22,7 @@ import static org.mockito.Mockito.when;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.mercateo.spring.security.jwt.support.CollectionUtils;
-import com.mercateo.spring.security.jwt.support.Tuple2;
+import com.mercateo.spring.security.jwt.support.Pair;
 import com.mercateo.spring.security.jwt.token.claim.JWTClaim;
 import com.mercateo.spring.security.jwt.token.claim.JWTClaims;
 import com.mercateo.spring.security.jwt.token.exception.InvalidTokenException;
@@ -50,7 +50,7 @@ public class JWTAuthenticationProviderTest {
 
     final java.util.Map<String, JWTClaim> claimsMap =
         CollectionUtils.mapOfTuples(
-            Tuple2.of( //
+            Pair.of( //
                 "bar", JWTClaim.builder().value("baz").name("bar").build()));
 
     JWTClaims claims = JWTClaims.builder().claims(claimsMap).token(JWT.decode(tokenString)).build();
@@ -72,7 +72,7 @@ public class JWTAuthenticationProviderTest {
 
     final java.util.Map<String, JWTClaim> claimsMap =
         CollectionUtils.mapOfTuples(
-            Tuple2.of( //
+            Pair.of( //
                 "scope", JWTClaim.builder().name("scope").value("foo bar").build()));
 
     JWTClaims claims = JWTClaims.builder().claims(claimsMap).token(JWT.decode(tokenString)).build();
@@ -95,7 +95,7 @@ public class JWTAuthenticationProviderTest {
 
     final java.util.Map<String, JWTClaim> claimsMap =
         CollectionUtils.mapOfTuples(
-            Tuple2.of( //
+            Pair.of( //
                 "roles",
                 JWTClaim.builder().name("roles").value(new Object[] {"foo", "bar"}).build()));
 

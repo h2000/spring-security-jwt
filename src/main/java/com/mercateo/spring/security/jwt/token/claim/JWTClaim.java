@@ -26,7 +26,7 @@ import java.util.Optional;
  * <p>Use the builder to create immutable instances: {@code JWTClaim.builder()}.
  */
 @SuppressWarnings({"all"})
-public final class JWTClaim {
+public class JWTClaim {
   private final String name;
   private final Object value;
   private final String issuer;

@@ -25,16 +25,16 @@ import java.util.Map;
 public enum CollectionUtils {
   ;
 
-  public static <T1, T2> Map<T1, T2> mapOfTuples(Iterable<Tuple2<T1, T2>> entries) {
+  public static <T1, T2> Map<T1, T2> mapOfTuples(Iterable<Pair<T1, T2>> entries) {
     Map<T1, T2> map = new LinkedHashMap<>();
-    entries.forEach(e -> map.put(e._1, e._2));
+    entries.forEach(e -> map.put(e.first(), e.second()));
     return map;
   }
 
   @SafeVarargs
-  public static <T1, T2> Map<T1, T2> mapOfTuples(Tuple2<T1, T2>... entries) {
+  public static <T1, T2> Map<T1, T2> mapOfTuples(Pair<T1, T2>... entries) {
     Map<T1, T2> map = new LinkedHashMap<>();
-    Arrays.stream(entries).forEach(e -> map.put(e._1, e._2));
+    Arrays.stream(entries).forEach(e -> map.put(e.first(), e.second()));
     return map;
   }
 

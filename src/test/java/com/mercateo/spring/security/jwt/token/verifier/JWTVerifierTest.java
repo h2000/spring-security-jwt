@@ -30,7 +30,7 @@ import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.mercateo.spring.security.jwt.JWKProvider;
 import com.mercateo.spring.security.jwt.support.Try;
-import com.mercateo.spring.security.jwt.support.Tuple2;
+import com.mercateo.spring.security.jwt.support.Pair;
 import com.mercateo.spring.security.jwt.token.config.JWTConfig;
 import com.mercateo.spring.security.jwt.token.config.JWTConfigData;
 import com.mercateo.spring.security.jwt.token.keyset.JWTKeyset;
@@ -76,7 +76,7 @@ public class JWTVerifierTest {
 
   @Test
   public void verifiesJWT() {
-    val originalToken = addVerifiedJWTAuthHeader(0, 30);
+    val originalToken = createToken(0, 30);
 
     val jwt = uut.verify(originalToken);
 
@@ -91,7 +91,7 @@ public class JWTVerifierTest {
 
   @Test
   public void verifiesJWTWithAudience() {
-    val originalToken = addVerifiedJWTAuthHeader(0, 30, Tuple2.of("aud", AUDIENCE));
+    val originalToken = createToken(0, 30, Pair.of("aud", AUDIENCE));
     uut =
         new JWTVerifierFactory(jwks, JWTConfigData.builder().addTokenAudiences(AUDIENCE).build())
             .create();
@@ -109,7 +109,7 @@ public class JWTVerifierTest {
 
   @Test
   public void verifiesJWTWithAlternativeAudience() {
-    val originalToken = addVerifiedJWTAuthHeader(0, 30, Tuple2.of("aud", AUDIENCE));
+    val originalToken = createToken(0, 30, Pair.of("aud", AUDIENCE));
     uut =
         new JWTVerifierFactory(
                 jwks,
@@ -126,7 +126,7 @@ public class JWTVerifierTest {
 
   @Test
   public void failsVerifyingExpiredToken() {
-    val originalToken = addVerifiedJWTAuthHeader(0, -30);
+    val originalToken = createToken(0, -30);
     uut = new JWTVerifierFactory(jwks, JWTConfigData.builder().build()).create();
 
     assertThatThrownBy(() -> uut.verify(originalToken))
@@ -136,7 +136,7 @@ public class JWTVerifierTest {
 
   @Test
   public void verifiesOffsetIssuedTokenWithDefaultLeeway() {
-    val originalToken = addVerifiedJWTAuthHeader(58, 3600);
+    val originalToken = createToken(58, 3600);
     uut = new JWTVerifierFactory(jwks, JWTConfigData.builder().build()).create();
 
     val jwt = uut.verify(originalToken);
@@ -146,7 +146,7 @@ public class JWTVerifierTest {
 
   @Test
   public void verifiesOffsetIssuedTokenWithExtendedLeeway() {
-    val originalToken = addVerifiedJWTAuthHeader(118, 3600);
+    val originalToken = createToken(118, 3600);
     uut = new JWTVerifierFactory(jwks, JWTConfigData.builder().tokenLeeway(120).build()).create();
 
     val jwt = uut.verify(originalToken);
@@ -156,7 +156,7 @@ public class JWTVerifierTest {
 
   @Test
   public void verifiesExpiredTokenWithConfiguredLeeway() {
-    val originalToken = addVerifiedJWTAuthHeader(0, -30);
+    val originalToken = createToken(0, -30);
     uut = new JWTVerifierFactory(jwks, JWTConfigData.builder().tokenLeeway(35).build()).create();
 
     val jwt = uut.verify(originalToken);
@@ -166,7 +166,7 @@ public class JWTVerifierTest {
 
   @Test
   public void failsVerifyingMissingAudience() {
-    val originalToken = addVerifiedJWTAuthHeader(0, 30);
+    val originalToken = createToken(0, 30);
     final JWTConfig config = JWTConfigData.builder().addTokenAudiences(AUDIENCE).build();
     uut = new JWTVerifierFactory(jwks, config).create();
 
@@ -177,12 +177,12 @@ public class JWTVerifierTest {
   }
 
   @SafeVarargs
-  private final String addVerifiedJWTAuthHeader(
-      long issued_offset, long expiry_offset, Tuple2<String, String>... claims) {
+  private final String createToken(
+      long issuedOffset, long expiryOffset, Pair<String, String>... claims) {
 
     val now = System.currentTimeMillis() / MILLISECONDS_PER_SECOND * MILLISECONDS_PER_SECOND;
-    issuedAt = new Date(now + issued_offset * MILLISECONDS_PER_SECOND);
-    expiresAt = new Date(now + expiry_offset * MILLISECONDS_PER_SECOND);
+    issuedAt = new Date(now + issuedOffset * MILLISECONDS_PER_SECOND);
+    expiresAt = new Date(now + expiryOffset * MILLISECONDS_PER_SECOND);
     final JWTCreator.Builder jwtBuilder =
         JWT.create()
             .withKeyId(keyId)
@@ -194,8 +194,8 @@ public class JWTVerifierTest {
             .withIssuer("https://test.org/")
             .withSubject("<subject>");
 
-    for (Tuple2<String, String> claim : claims) {
-      jwtBuilder.withClaim(claim._1, claim._2);
+    for (Pair<String, String> claim : claims) {
+      jwtBuilder.withClaim(claim.first(), claim.second());
     }
     return jwtBuilder.sign(algorithm);
   }

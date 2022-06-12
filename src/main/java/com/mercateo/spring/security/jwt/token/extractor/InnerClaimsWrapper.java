@@ -16,7 +16,7 @@
 package com.mercateo.spring.security.jwt.token.extractor;
 
 import com.mercateo.spring.security.jwt.support.CollectionUtils;
-import com.mercateo.spring.security.jwt.support.Tuple2;
+import com.mercateo.spring.security.jwt.support.Pair;
 import com.mercateo.spring.security.jwt.token.claim.JWTClaim;
 import java.util.List;
 import java.util.Map;
@@ -30,8 +30,8 @@ class InnerClaimsWrapper {
     final Map<String, List<JWTClaim>> grouped =
         claims.stream().collect(Collectors.groupingBy(JWTClaim::name));
     return grouped.entrySet().stream()
-        .map(x -> Tuple2.of(x.getKey(), wrapGroupedClaims(x.getValue())))
-        .collect(Collectors.toMap(t -> t._1, t -> t._2));
+        .map(x -> Pair.of(x.getKey(), wrapGroupedClaims(x.getValue())))
+        .collect(Collectors.toMap(Pair::first, Pair::second));
     // return claims.groupBy(JWTClaim::name).mapValues(this::wrapGroupedClaims).toJavaMap();
   }
 

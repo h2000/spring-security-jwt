@@ -19,7 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.mercateo.spring.security.jwt.data.ClaimName;
 import com.mercateo.spring.security.jwt.support.CollectionUtils;
-import com.mercateo.spring.security.jwt.support.Tuple2;
+import com.mercateo.spring.security.jwt.support.Pair;
 import com.mercateo.spring.security.jwt.token.claim.JWTClaim;
 import java.util.Collections;
 import java.util.Map;
@@ -35,7 +35,7 @@ public class JWTPrincipalTest {
     final JWTClaim build =
         JWTClaim.builder().name("foo_bar").value("<foo_bar>").issuer("<issuer>").build();
     Map<String, JWTClaim> claimsStringMap =
-        CollectionUtils.mapOfTuples(Tuple2.of("foo_bar", build));
+        CollectionUtils.mapOfTuples(Pair.of("foo_bar", build));
     uut = new JWTPrincipal(123L, "<username>", "<token>", Collections.emptyList(), claimsStringMap);
   }
 

@@ -29,7 +29,7 @@ import java.util.Objects;
  * <p>Use the builder to create immutable instances: {@code JWTClaims.builder()}.
  */
 @SuppressWarnings({"all"})
-public final class JWTClaims {
+public class JWTClaims {
   private final DecodedJWT token;
   private final Map<String, JWTClaim> claims;
   private final int verifiedCount;
