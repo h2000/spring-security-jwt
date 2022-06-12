@@ -32,7 +32,6 @@ class InnerClaimsWrapper {
     return grouped.entrySet().stream()
         .map(x -> Pair.of(x.getKey(), wrapGroupedClaims(x.getValue())))
         .collect(Collectors.toMap(Pair::first, Pair::second));
-    // return claims.groupBy(JWTClaim::name).mapValues(this::wrapGroupedClaims).toJavaMap();
   }
 
   private JWTClaim wrapGroupedClaims(List<JWTClaim> claims) {
