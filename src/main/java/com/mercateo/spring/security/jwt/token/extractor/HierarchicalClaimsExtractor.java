@@ -59,12 +59,15 @@ class HierarchicalClaimsExtractor {
   List<JWTClaim> extractClaims(String tokenString) {
     final List<JWTClaim> claims = new ArrayList<>();
 
+    // stack to collect unprocessed tokens
     final Stack<String> stack = new Stack<>();
     stack.push(tokenString);
 
     while (!stack.empty()) {
       final DecodedJWT token = tokenProcessor.decodeToken(stack.pop());
-      tokenProcessor.memoizePossiblyWrappedToken(token, stack::push);
+      // if token contains a "jwt" key
+      tokenProcessor.wrappedToken(token)
+        .ifPresent( stack::push);
 
       boolean verified = verifyToken(token);
       claims.addAll(extractClaims(token, verified));

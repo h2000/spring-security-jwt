@@ -21,7 +21,6 @@ import com.auth0.jwt.interfaces.Claim;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.mercateo.spring.security.jwt.token.exception.InvalidTokenException;
 import java.util.Optional;
-import java.util.function.Consumer;
 
 class TokenProcessor {
 
@@ -33,11 +32,11 @@ class TokenProcessor {
     }
   }
 
-  void memoizePossiblyWrappedToken(DecodedJWT token, Consumer<String> tokenStringConsumer) {
+  Optional<String> wrappedToken(DecodedJWT token) {
     final Claim claim = token.getClaim(ValidatingHierarchicalClaimsExtractor.WRAPPED_TOKEN_KEY);
-    Optional.ofNullable(claim) //
-        .filter(c -> !c.isNull())
-        .map(Claim::asString)
-        .ifPresent(tokenStringConsumer);
+    return Optional.ofNullable(claim)
+      .filter(c -> !c.isNull())
+      .map(Claim::asString)
+      ;
   }
 }
