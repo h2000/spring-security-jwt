@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.ToString;
 import lombok.experimental.Accessors;
 
@@ -15,12 +16,12 @@ import lombok.experimental.Accessors;
 @Getter
 @Accessors(fluent = true)
 public class JWTClaim {
-
-  private final String name;
+  @NonNull private final String name;
   private final Object value;
-  private final String issuer;
+  @NonNull private final String issuer;
   private final boolean verified;
   private final Optional<JWTClaim> innerClaim;
+  /** Depth starting from zero, how deep was the claim inside a jwt hierarchy. */
   private final int depth;
 
   @SuppressWarnings({"unused", "FieldMayBeFinal"})

@@ -15,7 +15,6 @@
  */
 package com.mercateo.spring.security.jwt.token.claim;
 
-
 import com.auth0.jwt.interfaces.DecodedJWT;
 import java.util.Map;
 import lombok.AllArgsConstructor;
@@ -35,8 +34,7 @@ import lombok.experimental.Accessors;
 public class JWTClaims {
 
   private final DecodedJWT token;
-  @Singular
-  private final Map<String, JWTClaim> claims;
+  @Singular private final Map<String, JWTClaim> claims;
   private final int verifiedCount;
 
   @SuppressWarnings({"unused", "FieldMayBeFinal"})

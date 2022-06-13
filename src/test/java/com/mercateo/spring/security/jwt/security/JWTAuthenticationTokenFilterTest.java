@@ -165,7 +165,7 @@ public class JWTAuthenticationTokenFilterTest {
 
   @Test
   public void attemptShouldReturnNullWithoutToken() {
-    when(request.getHeader( "authorization")).thenReturn(null);
+    when(request.getHeader("authorization")).thenReturn(null);
 
     // act
     Authentication result = uut.attemptAuthentication(request, response);
@@ -174,12 +174,12 @@ public class JWTAuthenticationTokenFilterTest {
   }
 
   @Test
-    public void attemptShouldReturnNullWithoutCorrectBearerTokenFormat() {
-      when(request.getHeader( "authorization")).thenReturn("NoBearer");
+  public void attemptShouldReturnNullWithoutCorrectBearerTokenFormat() {
+    when(request.getHeader("authorization")).thenReturn("NoBearer");
 
-      // act
-      Authentication result = uut.attemptAuthentication(request, response);
+    // act
+    Authentication result = uut.attemptAuthentication(request, response);
 
-      assertThat(result).isNull();
-    }
+    assertThat(result).isNull();
+  }
 }
