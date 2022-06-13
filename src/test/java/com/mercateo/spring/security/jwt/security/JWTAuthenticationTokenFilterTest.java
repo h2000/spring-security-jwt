@@ -29,7 +29,6 @@ import javax.servlet.FilterChain;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import lombok.val;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -51,16 +50,9 @@ public class JWTAuthenticationTokenFilterTest {
 
   @Mock private AuthenticationManager authenticationManager;
 
-  private JWTAuthenticationTokenFilter uut;
-
-  @Before
-  public void init() {
-    uut = new JWTAuthenticationTokenFilter();
-  }
-
   @Test
   public void throwsWithoutToken() throws Exception {
-
+    val uut = new JWTAuthenticationTokenFilter();
     JWTAuthenticationTokenFilter spy = Mockito.spy(uut);
     when(request.getServletPath()).thenReturn("/api");
 
@@ -74,11 +66,12 @@ public class JWTAuthenticationTokenFilterTest {
   public void returnsWrappedToken() {
     val tokenString = "<token>";
     when(request.getHeader("authorization")).thenReturn("Bearer " + tokenString);
-    uut.setAuthenticationManager(authenticationManager);
     val authentication = mock(Authentication.class);
     when(authenticationManager.authenticate(new JWTAuthenticationToken(tokenString)))
         .thenReturn(authentication);
 
+    val uut = new JWTAuthenticationTokenFilter();
+    uut.setAuthenticationManager(authenticationManager);
     val result = uut.attemptAuthentication(request, response);
 
     assertThat(result).isEqualTo(authentication);
@@ -86,7 +79,7 @@ public class JWTAuthenticationTokenFilterTest {
 
   @Test
   public void dontAttemptAuthenticationWithoutTokenWithAnonymousPath() throws Exception {
-
+    val uut = new JWTAuthenticationTokenFilter();
     uut.addUnauthenticatedPaths(Collections.singleton("/api"));
     JWTAuthenticationTokenFilter spy = Mockito.spy(uut);
     when(request.getServletPath()).thenReturn("/api");
@@ -98,7 +91,7 @@ public class JWTAuthenticationTokenFilterTest {
 
   @Test
   public void dontAttemptAuthenticationWithoutTokenWithAnonymousPathWildcard() throws Exception {
-
+    val uut = new JWTAuthenticationTokenFilter();
     uut.addUnauthenticatedPaths(Collections.singleton("/api/*"));
     JWTAuthenticationTokenFilter spy = Mockito.spy(uut);
     when(request.getServletPath()).thenReturn("/api/foo");
@@ -110,7 +103,7 @@ public class JWTAuthenticationTokenFilterTest {
 
   @Test
   public void callsFilterChainWithoutTokenWithAnonymousPath() throws Exception {
-
+    val uut = new JWTAuthenticationTokenFilter();
     uut.addUnauthenticatedPaths(Collections.singleton("/api"));
     when(request.getServletPath()).thenReturn("/api");
 
@@ -130,6 +123,7 @@ public class JWTAuthenticationTokenFilterTest {
             any(HttpServletRequest.class),
             any(HttpServletResponse.class),
             any(AuthenticationException.class));
+    val uut = new JWTAuthenticationTokenFilter();
     uut.setAuthenticationFailureHandler(mockAuthenticationFailureHandler);
 
     uut.doFilter(request, response, chain);
@@ -144,7 +138,7 @@ public class JWTAuthenticationTokenFilterTest {
 
   @Test
   public void throwsWithoutTokenInSubdirectoryOfAnonymousPath() throws Exception {
-
+    val uut = new JWTAuthenticationTokenFilter();
     uut.addUnauthenticatedPaths(Collections.singleton("/api"));
     JWTAuthenticationTokenFilter spy = Mockito.spy(uut);
     when(request.getServletPath()).thenReturn("/api/foo");
@@ -158,6 +152,7 @@ public class JWTAuthenticationTokenFilterTest {
   @Test
   public void callsFilterChainIfSuccessfulAuthentication() throws Exception {
     val authentication = mock(Authentication.class);
+    val uut = new JWTAuthenticationTokenFilter();
     uut.successfulAuthentication(request, response, chain, authentication);
 
     verify(chain).doFilter(request, response);
@@ -166,7 +161,7 @@ public class JWTAuthenticationTokenFilterTest {
   @Test
   public void attemptShouldReturnNullWithoutToken() {
     when(request.getHeader("authorization")).thenReturn(null);
-
+    val uut = new JWTAuthenticationTokenFilter();
     // act
     Authentication result = uut.attemptAuthentication(request, response);
 
@@ -176,6 +171,7 @@ public class JWTAuthenticationTokenFilterTest {
   @Test
   public void attemptShouldReturnNullWithoutCorrectBearerTokenFormat() {
     when(request.getHeader("authorization")).thenReturn("NoBearer");
+    val uut = new JWTAuthenticationTokenFilter();
 
     // act
     Authentication result = uut.attemptAuthentication(request, response);
