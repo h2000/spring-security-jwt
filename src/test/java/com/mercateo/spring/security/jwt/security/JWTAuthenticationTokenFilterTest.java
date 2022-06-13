@@ -164,9 +164,22 @@ public class JWTAuthenticationTokenFilterTest {
   }
 
   @Test
-  public void returnNullWithoutToken() {
+  public void attemptShouldReturnNullWithoutToken() {
+    when(request.getHeader( "authorization")).thenReturn(null);
+
+    // act
     Authentication result = uut.attemptAuthentication(request, response);
 
     assertThat(result).isNull();
   }
+
+  @Test
+    public void attemptShouldReturnNullWithoutCorrectBearerTokenFormat() {
+      when(request.getHeader( "authorization")).thenReturn("NoBearer");
+
+      // act
+      Authentication result = uut.attemptAuthentication(request, response);
+
+      assertThat(result).isNull();
+    }
 }

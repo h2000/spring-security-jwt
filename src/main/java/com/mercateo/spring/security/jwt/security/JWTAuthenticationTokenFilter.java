@@ -69,8 +69,10 @@ public class JWTAuthenticationTokenFilter extends AbstractAuthenticationProcessi
     String tokenHeader = request.getHeader(TOKEN_HEADER);
 
     if (isInvalidTokenPrefixForBearer(tokenHeader)) {
+      // signal super class to stop processing
       return null;
     }
+    // existence of whitespace is ensured in isInvalidTokenPrefixForBearer
     String authToken = tokenHeader.split("\\s+")[1];
     return getAuthenticationManager().authenticate(new JWTAuthenticationToken(authToken));
   }
