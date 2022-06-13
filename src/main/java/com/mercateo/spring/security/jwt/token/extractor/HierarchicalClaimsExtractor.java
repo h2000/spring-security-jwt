@@ -28,6 +28,10 @@ import java.util.Set;
 import java.util.Stack;
 import java.util.stream.Collectors;
 
+/**
+ * Warning: do not reuse instance, the extractor keeps internal state like depth,
+ * verifiesTokenCount,.
+ */
 class HierarchicalClaimsExtractor {
 
   private final TokenProcessor tokenProcessor;
@@ -59,15 +63,16 @@ class HierarchicalClaimsExtractor {
   List<JWTClaim> extractClaims(String tokenString) {
     final List<JWTClaim> claims = new ArrayList<>();
 
-    // stack to collect unprocessed tokens
-    final Stack<String> stack = new Stack<>();
-    stack.push(tokenString);
+    // unprocessedTokens to collect unprocessed tokens
+    final Stack<String> unprocessedTokens = new Stack<>();
+    unprocessedTokens.push(tokenString);
 
-    while (!stack.empty()) {
-      final DecodedJWT token = tokenProcessor.decodeToken(stack.pop());
+    while (!unprocessedTokens.empty()) {
+      final DecodedJWT token = tokenProcessor.decodeToken(unprocessedTokens.pop());
       // if token contains a "jwt" key
-      tokenProcessor.wrappedToken(token)
-        .ifPresent( stack::push);
+      tokenProcessor
+          .wrappedToken(token, ValidatingHierarchicalClaimsExtractor.WRAPPED_TOKEN_KEY)
+          .ifPresent(unprocessedTokens::push);
 
       boolean verified = verifyToken(token);
       claims.addAll(extractClaims(token, verified));

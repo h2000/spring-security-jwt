@@ -32,11 +32,11 @@ class TokenProcessor {
     }
   }
 
-  Optional<String> wrappedToken(DecodedJWT token) {
-    final Claim claim = token.getClaim(ValidatingHierarchicalClaimsExtractor.WRAPPED_TOKEN_KEY);
-    return Optional.ofNullable(claim)
-      .filter(c -> !c.isNull())
-      .map(Claim::asString)
-      ;
+  Optional<String> wrappedToken(DecodedJWT token, String claimName) {
+    final Claim claim = token.getClaim(claimName);
+    return Optional //
+        .ofNullable(claim)
+        .filter(c -> !c.isNull())
+        .map(Claim::asString);
   }
 }
