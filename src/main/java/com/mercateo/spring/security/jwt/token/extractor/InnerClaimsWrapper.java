@@ -44,9 +44,8 @@ class InnerClaimsWrapper {
   }
 
   private JWTClaim buildJwtClaim(final JWTClaim jwtClaim, final JWTClaim innerClaim) {
-    return JWTClaim //
-        .builder()
-        .from(jwtClaim)
+    return jwtClaim //
+        .toBuilder()
         .innerClaim(Optional.ofNullable(innerClaim))
         .build();
   }
