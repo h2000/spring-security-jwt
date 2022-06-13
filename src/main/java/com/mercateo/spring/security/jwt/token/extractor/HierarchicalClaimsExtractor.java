@@ -63,6 +63,7 @@ class HierarchicalClaimsExtractor {
   List<JWTClaim> extractClaims(String tokenString) {
     final List<JWTClaim> claims = new ArrayList<>();
 
+    // this process is recursive, if we find a "jwt" we decode and collect claims
     // unprocessedTokens to collect unprocessed tokens
     final Stack<String> unprocessedTokens = new Stack<>();
     unprocessedTokens.push(tokenString);
