@@ -125,7 +125,7 @@ public class ValidatingHierarchicalClaimsExtractorTest {
             .addRequiredClaims("int")
             .addRequiredClaims("object")
             .build();
-    uut = new ValidatingHierarchicalClaimsExtractor(securityConfig);
+    val uut = new ValidatingHierarchicalClaimsExtractor(securityConfig);
 
     final Method addClaim =
         JWTCreator.Builder.class.getDeclaredMethod("addClaim", String.class, Object.class);
@@ -227,7 +227,7 @@ public class ValidatingHierarchicalClaimsExtractorTest {
 
   @Test
   public void doesNotThrowsExceptionWithoutSignedTokenIfNoValidatorIsConfigured() {
-    uut = new ValidatingHierarchicalClaimsExtractor(JWTConfigData.builder().build());
+    val uut = new ValidatingHierarchicalClaimsExtractor(JWTConfigData.builder().build());
     final String tokenString = JWT.create().sign(Algorithm.none());
 
     val result = uut.extractClaims(tokenString);
