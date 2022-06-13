@@ -34,8 +34,7 @@ public class JWTPrincipalTest {
   public void setUp() {
     final JWTClaim build =
         JWTClaim.builder().name("foo_bar").value("<foo_bar>").issuer("<issuer>").build();
-    Map<String, JWTClaim> claimsStringMap =
-        CollectionUtils.mapOfTuples(Pair.of("foo_bar", build));
+    Map<String, JWTClaim> claimsStringMap = CollectionUtils.mapOfTuples(Pair.of("foo_bar", build));
     uut = new JWTPrincipal(123L, "<username>", "<token>", Collections.emptyList(), claimsStringMap);
   }
 
