@@ -175,7 +175,7 @@
 						<!-- <file>${basedir}/src/etc/header.txt</file> -->
 						<!-- </licenseHeader> -->
 					</java>
-					<!-- <ratchetFrom>origin/master</ratchetFrom> -->
+					<ratchetFrom>origin/master</ratchetFrom>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -377,6 +377,12 @@
 			<groupId>com.auth0</groupId>
 			<artifactId>jwks-rsa</artifactId>
 			<version>${jwks-rsa.version}</version>
+		</dependency>
+		<dependency>
+			<!-- used by jwks-rsa, e.g. for Cache and Visble Anno -->
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>31.1-jre</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-codec</groupId>
