@@ -34,6 +34,7 @@ import java.util.stream.Collectors;
  */
 class HierarchicalClaimsExtractor {
 
+  public static final String WRAPPED_TOKEN_KEY = "jwt";
   private final TokenProcessor tokenProcessor;
 
   private final TokenVerifier verifier;
@@ -72,7 +73,7 @@ class HierarchicalClaimsExtractor {
       final DecodedJWT token = tokenProcessor.decodeToken(unprocessedTokens.pop());
       // if token contains a "jwt" key
       tokenProcessor
-          .wrappedToken(token, ValidatingHierarchicalClaimsExtractor.WRAPPED_TOKEN_KEY)
+          .wrappedToken(token, WRAPPED_TOKEN_KEY)
           .ifPresent(unprocessedTokens::push);
 
       boolean verified = verifyToken(token);

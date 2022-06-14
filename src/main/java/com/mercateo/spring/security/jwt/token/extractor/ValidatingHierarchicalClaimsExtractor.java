@@ -32,8 +32,6 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ValidatingHierarchicalClaimsExtractor {
 
-  public static final String WRAPPED_TOKEN_KEY = "jwt";
-
   public static final List<String> AUTHORIZATION_CLAIMS =
       Arrays.asList("scope", "authorization", "roles");
 
