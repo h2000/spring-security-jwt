@@ -66,14 +66,7 @@ public class JWTAuthenticationProvider extends AbstractUserDetailsAuthentication
     try {
       claims = hierarchicalJWTClaimsExtractor.extractClaims(tokenString);
     } catch (TokenException e) {
-      final String message;
-      if (e.getCause() != null && e.getCause().getMessage() != null) {
-        message = e.getCause().getMessage();
-      } else if (e.getMessage() != null) {
-        message = e.getMessage();
-      } else {
-        message = "failed to extract token";
-      }
+      final String message = searchMessageInException(e, "failed to extract token");
       throw new InvalidTokenException(message, e);
     }
 
@@ -83,6 +76,16 @@ public class JWTAuthenticationProvider extends AbstractUserDetailsAuthentication
     final List<? extends GrantedAuthority> authorities = retrieveAuthorities(claims);
 
     return new JWTPrincipal(id, subject, tokenString, authorities, claims.claims());
+  }
+
+  static private String searchMessageInException(RuntimeException e, String defaultErrorMsg) {
+    if (e.getCause() != null && e.getCause().getMessage() != null) {
+      return e.getCause().getMessage();
+    } else if (e.getMessage() != null) {
+      return e.getMessage();
+    } else {
+      return defaultErrorMsg;
+    }
   }
 
   protected List<? extends GrantedAuthority> retrieveAuthorities(JWTClaims claims) {
