@@ -18,7 +18,7 @@ package com.mercateo.spring.security.jwt.security;
 import com.google.common.annotations.VisibleForTesting;
 import com.mercateo.spring.security.jwt.token.exception.InvalidTokenException;
 import java.io.IOException;
-import java.util.HashSet;
+import java.util.Collections;
 import java.util.Set;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -26,7 +26,6 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
@@ -35,15 +34,21 @@ import org.springframework.util.AntPathMatcher;
 @Slf4j
 public class JWTAuthenticationTokenFilter extends AbstractAuthenticationProcessingFilter {
 
+  private static final String DEFAULT_FILTER_PROCESSES_URL = "/**";
   private static final String TOKEN_HEADER = "authorization";
   private static final String TOKEN_PREFIX_BEARER = "Bearer ";
 
   private final AntPathMatcher antPathMatcher = new AntPathMatcher();
 
-  private final Set<String> unauthenticatedPaths = new HashSet<>();
+  private final Set<String> unauthenticatedPaths;
 
   public JWTAuthenticationTokenFilter() {
-    super("/**");
+    this(Collections.emptySet());
+  }
+
+  public JWTAuthenticationTokenFilter(Set<String> unauthenticatedPaths) {
+    super(DEFAULT_FILTER_PROCESSES_URL);
+    this.unauthenticatedPaths = Collections.unmodifiableSet(unauthenticatedPaths);
   }
 
   @Override
@@ -51,11 +56,13 @@ public class JWTAuthenticationTokenFilter extends AbstractAuthenticationProcessi
       throws IOException, ServletException {
     final HttpServletRequest request = (HttpServletRequest) req;
     final HttpServletResponse response = (HttpServletResponse) res;
+
+    final String pathToCheck = pathFrom(request);
     final String tokenHeader = request.getHeader(TOKEN_HEADER);
 
     if (isInvalidTokenPrefixForBearer(tokenHeader)) {
       try {
-        handleNoBearerToken(request, response, chain, tokenHeader);
+        handleNoBearerToken(request, response, chain, tokenHeader, pathToCheck);
       } catch (InvalidTokenException e) {
         unsuccessfulAuthentication(request, response, e);
       }
@@ -64,13 +71,11 @@ public class JWTAuthenticationTokenFilter extends AbstractAuthenticationProcessi
     }
   }
 
-  /**
-   * This method is only needed to test the super.doFilter(..) call.
-   */
+  /** This method is only needed to test the super.doFilter(..) call. */
   @VisibleForTesting
   void callSuperDoFilter(ServletRequest req, ServletResponse res, FilterChain chain)
-    throws ServletException, IOException {
-    super.doFilter(req,res,chain);
+      throws ServletException, IOException {
+    super.doFilter(req, res, chain);
   }
 
   @Override
@@ -104,13 +109,14 @@ public class JWTAuthenticationTokenFilter extends AbstractAuthenticationProcessi
   }
 
   private void handleNoBearerToken(
-      HttpServletRequest request, HttpServletResponse response, FilterChain chain, String token)
+      HttpServletRequest request,
+      HttpServletResponse response,
+      FilterChain chain,
+      String token,
+      String pathToCheck)
       throws IOException, ServletException {
-    final String pathInfo = String.valueOf(request.getPathInfo()).replace("null", "");
-    final String servletPath = String.valueOf(request.getServletPath()).replace("null", "");
 
     // request URL depends on the default servlet or mounted location
-    final String pathToCheck = servletPath + pathInfo;
     log.debug("No {}token found: {} ({})", TOKEN_PREFIX_BEARER, pathToCheck, token);
 
     if (isUnauthenticatedPath(pathToCheck)) {
@@ -130,7 +136,12 @@ public class JWTAuthenticationTokenFilter extends AbstractAuthenticationProcessi
     return unauthenticatedPaths.stream().anyMatch(path -> antPathMatcher.match(path, pathToCheck));
   }
 
-  public void addUnauthenticatedPaths(@NonNull Set<String> unauthenticatedPaths) {
-    this.unauthenticatedPaths.addAll(unauthenticatedPaths);
+  @VisibleForTesting
+  String pathFrom(HttpServletRequest request) {
+    final String pathInfo = String.valueOf(request.getPathInfo()).replace("null", "");
+    final String servletPath = String.valueOf(request.getServletPath()).replace("null", "");
+
+    // request URL depends on the default servlet or mounted location
+    return servletPath + pathInfo;
   }
 }

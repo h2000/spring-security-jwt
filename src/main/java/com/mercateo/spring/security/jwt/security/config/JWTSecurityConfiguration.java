@@ -71,13 +71,11 @@ public class JWTSecurityConfiguration extends WebSecurityConfigurerAdapter {
   public JWTAuthenticationTokenFilter authenticationTokenFilterBean() {
     JWTSecurityConfig jwtSecurityConfig = jwtSecurityConfig();
 
-    JWTAuthenticationTokenFilter authenticationTokenFilter = new JWTAuthenticationTokenFilter();
+    JWTAuthenticationTokenFilter authenticationTokenFilter =
+        new JWTAuthenticationTokenFilter(jwtSecurityConfig.anonymousPaths());
     authenticationTokenFilter.setAuthenticationManager(authenticationManager());
     authenticationTokenFilter.setAuthenticationSuccessHandler(
         new JWTAuthenticationSuccessHandler());
-    if (!jwtSecurityConfig.anonymousPaths().isEmpty()) {
-      authenticationTokenFilter.addUnauthenticatedPaths(jwtSecurityConfig.anonymousPaths());
-    }
     jwtSecurityConfig
         .authenticationFailureHandler()
         .ifPresent(authenticationTokenFilter::setAuthenticationFailureHandler);
