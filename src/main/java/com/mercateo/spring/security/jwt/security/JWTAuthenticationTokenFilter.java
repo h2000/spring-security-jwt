@@ -27,6 +27,7 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
+import lombok.val;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
 import org.springframework.util.AntPathMatcher;
@@ -53,9 +54,9 @@ public class JWTAuthenticationTokenFilter extends AbstractAuthenticationProcessi
 
   @Override
   public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain)
-      throws IOException, ServletException {
-    final HttpServletRequest request = (HttpServletRequest) req;
-    final HttpServletResponse response = (HttpServletResponse) res;
+    throws IOException, ServletException {
+    val request = (HttpServletRequest) req;
+    val response = (HttpServletResponse) res;
 
     final String pathToCheck = pathFrom(request);
     final String tokenHeader = request.getHeader(TOKEN_HEADER);
@@ -67,20 +68,24 @@ public class JWTAuthenticationTokenFilter extends AbstractAuthenticationProcessi
         unsuccessfulAuthentication(request, response, e);
       }
     } else {
-      callSuperDoFilter(request, response, chain);
+      continueAuthenticationChecks(request, response, chain);
     }
   }
 
-  /** This method is only needed to test the super.doFilter(..) call. */
+  /**
+   * Continue with default logic see
+   * {@link AbstractAuthenticationProcessingFilter#doFilter(ServletRequest, ServletResponse, FilterChain)} for Details.
+   * <p>
+   * This method is only needed to test the super.doFilter(..) call.
+   */
   @VisibleForTesting
-  void callSuperDoFilter(ServletRequest req, ServletResponse res, FilterChain chain)
-      throws ServletException, IOException {
+  void continueAuthenticationChecks(ServletRequest req, ServletResponse res, FilterChain chain)
+    throws ServletException, IOException {
     super.doFilter(req, res, chain);
   }
 
   @Override
-  public Authentication attemptAuthentication(
-      HttpServletRequest request, HttpServletResponse response) {
+  public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) {
     final String tokenHeader = request.getHeader(TOKEN_HEADER);
 
     if (isInvalidTokenPrefixForBearer(tokenHeader)) {
@@ -93,46 +98,34 @@ public class JWTAuthenticationTokenFilter extends AbstractAuthenticationProcessi
   }
 
   @Override
-  protected void successfulAuthentication(
-      HttpServletRequest request,
-      HttpServletResponse response,
-      FilterChain chain,
-      Authentication authResult)
-      throws IOException, ServletException {
+  protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain,
+    Authentication authResult) throws IOException, ServletException {
     super.successfulAuthentication(request, response, chain, authResult);
 
     chain.doFilter(request, response);
   }
 
-  private boolean isInvalidTokenPrefixForBearer(final String tokenHeader) {
-    return tokenHeader == null || !tokenHeader.startsWith(TOKEN_PREFIX_BEARER);
-  }
+  private void handleNoBearerToken(HttpServletRequest request, HttpServletResponse response, FilterChain chain,
+    String token, String pathToCheck) throws IOException, ServletException {
 
-  private void handleNoBearerToken(
-      HttpServletRequest request,
-      HttpServletResponse response,
-      FilterChain chain,
-      String token,
-      String pathToCheck)
-      throws IOException, ServletException {
-
-    // request URL depends on the default servlet or mounted location
     log.debug("No {}token found: {} ({})", TOKEN_PREFIX_BEARER, pathToCheck, token);
 
     if (isUnauthenticatedPath(pathToCheck)) {
       chain.doFilter(request, response);
     } else {
-      final String message =
-          "No "
-              .concat(TOKEN_PREFIX_BEARER)
-              .concat("token and no unauthenticated path [")
-              .concat(pathToCheck)
-              .concat("].");
+      final String message = "No ".concat(TOKEN_PREFIX_BEARER).concat("token and no unauthenticated path [")
+        .concat(pathToCheck).concat("].");
       throw new InvalidTokenException(message);
     }
   }
 
-  private boolean isUnauthenticatedPath(final String pathToCheck) {
+  @VisibleForTesting
+  boolean isInvalidTokenPrefixForBearer(final String tokenHeader) {
+    return tokenHeader == null || !tokenHeader.startsWith(TOKEN_PREFIX_BEARER);
+  }
+
+  @VisibleForTesting
+  boolean isUnauthenticatedPath(final String pathToCheck) {
     return unauthenticatedPaths.stream().anyMatch(path -> antPathMatcher.match(path, pathToCheck));
   }
 

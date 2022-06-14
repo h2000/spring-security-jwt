@@ -189,7 +189,7 @@ public class JWTAuthenticationTokenFilterTest {
     // act
     uut.doFilter(request, response, chain);
 
-    verify(uut).callSuperDoFilter(any(), any(), any());
+    verify(uut).continueAuthenticationChecks(any(), any(), any());
     verify(uut, never()).attemptAuthentication(request, response);
     verify(uut, never()).successfulAuthentication(any(), any(), any(), any());
   }
