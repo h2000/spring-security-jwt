@@ -78,7 +78,7 @@ public class JWTAuthenticationProvider extends AbstractUserDetailsAuthentication
     return new JWTPrincipal(id, subject, tokenString, authorities, claims.claims());
   }
 
-  static private String searchMessageInException(RuntimeException e, String defaultErrorMsg) {
+  private static String searchMessageInException(RuntimeException e, String defaultErrorMsg) {
     if (e.getCause() != null && e.getCause().getMessage() != null) {
       return e.getCause().getMessage();
     } else if (e.getMessage() != null) {

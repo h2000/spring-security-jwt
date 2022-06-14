@@ -72,9 +72,7 @@ class HierarchicalClaimsExtractor {
     while (!unprocessedTokens.empty()) {
       final DecodedJWT token = tokenProcessor.decodeToken(unprocessedTokens.pop());
       // if token contains a "jwt" key
-      tokenProcessor
-          .wrappedToken(token, WRAPPED_TOKEN_KEY)
-          .ifPresent(unprocessedTokens::push);
+      tokenProcessor.wrappedToken(token, WRAPPED_TOKEN_KEY).ifPresent(unprocessedTokens::push);
 
       boolean verified = verifyToken(token);
       claims.addAll(extractClaims(token, verified));

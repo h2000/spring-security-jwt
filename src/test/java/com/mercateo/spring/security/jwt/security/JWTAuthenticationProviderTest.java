@@ -50,7 +50,7 @@ public class JWTAuthenticationProviderTest {
 
     final java.util.Map<String, JWTClaim> claimsMap =
         CollectionUtils.mapOfTuples(
-            Pair.of( "bar", JWTClaim.builder().value("baz").name("bar").build()));
+            Pair.of("bar", JWTClaim.builder().value("baz").name("bar").build()));
 
     JWTClaims claims = JWTClaims.builder().claims(claimsMap).token(JWT.decode(tokenString)).build();
 
