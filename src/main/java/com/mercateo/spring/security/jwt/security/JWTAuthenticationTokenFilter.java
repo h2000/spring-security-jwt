@@ -15,6 +15,7 @@
  */
 package com.mercateo.spring.security.jwt.security;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.mercateo.spring.security.jwt.token.exception.InvalidTokenException;
 import java.io.IOException;
 import java.util.HashSet;
@@ -48,9 +49,9 @@ public class JWTAuthenticationTokenFilter extends AbstractAuthenticationProcessi
   @Override
   public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain)
       throws IOException, ServletException {
-    HttpServletRequest request = (HttpServletRequest) req;
-    HttpServletResponse response = (HttpServletResponse) res;
-    String tokenHeader = request.getHeader(TOKEN_HEADER);
+    final HttpServletRequest request = (HttpServletRequest) req;
+    final HttpServletResponse response = (HttpServletResponse) res;
+    final String tokenHeader = request.getHeader(TOKEN_HEADER);
 
     if (isInvalidTokenPrefixForBearer(tokenHeader)) {
       try {
@@ -59,21 +60,30 @@ public class JWTAuthenticationTokenFilter extends AbstractAuthenticationProcessi
         unsuccessfulAuthentication(request, response, e);
       }
     } else {
-      super.doFilter(request, response, chain);
+      callSuperDoFilter(request, response, chain);
     }
+  }
+
+  /**
+   * This method is only needed to test the super.doFilter(..) call.
+   */
+  @VisibleForTesting
+  void callSuperDoFilter(ServletRequest req, ServletResponse res, FilterChain chain)
+    throws ServletException, IOException {
+    super.doFilter(req,res,chain);
   }
 
   @Override
   public Authentication attemptAuthentication(
       HttpServletRequest request, HttpServletResponse response) {
-    String tokenHeader = request.getHeader(TOKEN_HEADER);
+    final String tokenHeader = request.getHeader(TOKEN_HEADER);
 
     if (isInvalidTokenPrefixForBearer(tokenHeader)) {
       // signal super class to stop processing
       return null;
     }
     // existence of whitespace is ensured in isInvalidTokenPrefixForBearer
-    String authToken = tokenHeader.split("\\s+")[1];
+    final String authToken = tokenHeader.split("\\s+")[1];
     return getAuthenticationManager().authenticate(new JWTAuthenticationToken(authToken));
   }
 
