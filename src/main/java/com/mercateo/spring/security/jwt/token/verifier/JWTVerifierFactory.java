@@ -38,7 +38,7 @@ public class JWTVerifierFactory {
 
   private final JWTConfig jwtConfig;
 
-  private static IllegalStateException map(Throwable cause) {
+  private static IllegalStateException wrapInIllegateStateException(Throwable cause) {
     return new IllegalStateException(cause);
   }
 
@@ -53,7 +53,7 @@ public class JWTVerifierFactory {
                 .map(Key::getEncoded)
                 .mapTry(JWTVerifierFactory::createKey)
                 .onFailure(e -> log.error("Error getting public key for id " + keyId, e))
-                .getOrElseThrow(JWTVerifierFactory::map);
+                .getOrElseThrow(JWTVerifierFactory::wrapInIllegateStateException);
           }
 
           @Override
