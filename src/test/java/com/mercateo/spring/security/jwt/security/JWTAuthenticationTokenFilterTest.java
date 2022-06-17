@@ -179,8 +179,9 @@ public class JWTAuthenticationTokenFilterTest {
   }
 
   @Test
-  public void attemptShouldReturnNullWithoutCorrectBearerTokenFormat2()
+  public void doFilterShouldBeNotSuccessfulWithoutCorrectBearerTokenFormat()
       throws ServletException, IOException {
+    // arrange
     when(request.getHeader("authorization")).thenReturn("Bearer XXXX");
     val uut = spy(new JWTAuthenticationTokenFilter());
     final AuthenticationManager authManager = mock(AuthenticationManager.class);
@@ -189,8 +190,9 @@ public class JWTAuthenticationTokenFilterTest {
     // act
     uut.doFilter(request, response, chain);
 
+    // assert
     verify(uut).continueAuthenticationChecks(any(), any(), any());
-    verify(uut, never()).attemptAuthentication(request, response);
+    verify(uut).attemptAuthentication(request, response);
     verify(uut, never()).successfulAuthentication(any(), any(), any(), any());
   }
 }

@@ -54,7 +54,7 @@ public class JWTAuthenticationTokenFilter extends AbstractAuthenticationProcessi
 
   @Override
   public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain)
-    throws IOException, ServletException {
+      throws IOException, ServletException {
     val request = (HttpServletRequest) req;
     val response = (HttpServletResponse) res;
 
@@ -73,19 +73,21 @@ public class JWTAuthenticationTokenFilter extends AbstractAuthenticationProcessi
   }
 
   /**
-   * Continue with default logic see
-   * {@link AbstractAuthenticationProcessingFilter#doFilter(ServletRequest, ServletResponse, FilterChain)} for Details.
-   * <p>
-   * This method is only needed to test the super.doFilter(..) call.
+   * Continue with default logic see {@link
+   * AbstractAuthenticationProcessingFilter#doFilter(ServletRequest, ServletResponse, FilterChain)}
+   * for Details.
+   *
+   * <p>This method is only needed to test the super.doFilter(..) call.
    */
   @VisibleForTesting
   void continueAuthenticationChecks(ServletRequest req, ServletResponse res, FilterChain chain)
-    throws ServletException, IOException {
+      throws ServletException, IOException {
     super.doFilter(req, res, chain);
   }
 
   @Override
-  public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) {
+  public Authentication attemptAuthentication(
+      HttpServletRequest request, HttpServletResponse response) {
     final String tokenHeader = request.getHeader(TOKEN_HEADER);
 
     if (isInvalidTokenPrefixForBearer(tokenHeader)) {
@@ -98,15 +100,25 @@ public class JWTAuthenticationTokenFilter extends AbstractAuthenticationProcessi
   }
 
   @Override
-  protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain,
-    Authentication authResult) throws IOException, ServletException {
+  protected void successfulAuthentication(
+      HttpServletRequest request,
+      HttpServletResponse response,
+      FilterChain chain,
+      Authentication authResult)
+      throws IOException, ServletException {
     super.successfulAuthentication(request, response, chain, authResult);
 
     chain.doFilter(request, response);
   }
 
-  private void handleNoBearerToken(HttpServletRequest request, HttpServletResponse response, FilterChain chain,
-    String token, String pathToCheck) throws IOException, ServletException {
+  @VisibleForTesting
+  void handleNoBearerToken(
+      HttpServletRequest request,
+      HttpServletResponse response,
+      FilterChain chain,
+      String token,
+      String pathToCheck)
+      throws IOException, ServletException {
 
     log.debug("No {}token found: {} ({})", TOKEN_PREFIX_BEARER, pathToCheck, token);
 
@@ -114,7 +126,7 @@ public class JWTAuthenticationTokenFilter extends AbstractAuthenticationProcessi
       chain.doFilter(request, response);
     } else {
       final String message = //
-        "No " + TOKEN_PREFIX_BEARER + "token and no unauthenticated path [" + pathToCheck + "].";
+          "No " + TOKEN_PREFIX_BEARER + "token and no unauthenticated path [" + pathToCheck + "].";
       throw new InvalidTokenException(message);
     }
   }
