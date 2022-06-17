@@ -113,8 +113,8 @@ public class JWTAuthenticationTokenFilter extends AbstractAuthenticationProcessi
     if (isUnauthenticatedPath(pathToCheck)) {
       chain.doFilter(request, response);
     } else {
-      final String message = "No ".concat(TOKEN_PREFIX_BEARER).concat("token and no unauthenticated path [")
-        .concat(pathToCheck).concat("].");
+      final String message = //
+        "No " + TOKEN_PREFIX_BEARER + "token and no unauthenticated path [" + pathToCheck + "].";
       throw new InvalidTokenException(message);
     }
   }
