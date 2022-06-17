@@ -45,11 +45,11 @@ public class JWTPrincipal implements UserDetails {
   private final Map<String, JWTClaim> claims;
 
   public JWTPrincipal(
-    long id,
-    String username,
-    String token,
-    List<? extends GrantedAuthority> authorities,
-    Map<String, JWTClaim> claims) {
+      long id,
+      String username,
+      String token,
+      List<? extends GrantedAuthority> authorities,
+      Map<String, JWTClaim> claims) {
     this.id = id;
     this.username = username;
     this.token = token;
@@ -60,9 +60,9 @@ public class JWTPrincipal implements UserDetails {
   @SuppressWarnings("unused")
   public static JWTPrincipal fromContext() {
     final SecurityContext securityContext =
-      requireNonNull(SecurityContextHolder.getContext(), "no security context available");
+        requireNonNull(SecurityContextHolder.getContext(), "no security context available");
     final Authentication authentication =
-      requireNonNull(securityContext.getAuthentication(), "no authentication available");
+        requireNonNull(securityContext.getAuthentication(), "no authentication available");
     return (JWTPrincipal) authentication.getPrincipal();
   }
 
@@ -125,14 +125,18 @@ public class JWTPrincipal implements UserDetails {
   @Override
   public String toString() {
     final String authoritiesString =
-      authorities.stream()//
-        .filter(x -> x != null && x.getAuthority() != null)
-        .map(GrantedAuthority::getAuthority)
-        .collect(Collectors.joining(","));
-    return "JWTPrincipal{" +
-      "id=" + id +
-      ", username='" + username + '\'' +
-      ", authoritiesString=" + authoritiesString +
-      '}';
+        authorities.stream() //
+            .filter(x -> x != null && x.getAuthority() != null)
+            .map(GrantedAuthority::getAuthority)
+            .collect(Collectors.joining(","));
+    return "JWTPrincipal{"
+        + "id="
+        + id
+        + ", username='"
+        + username
+        + '\''
+        + ", authoritiesString="
+        + authoritiesString
+        + '}';
   }
 }
