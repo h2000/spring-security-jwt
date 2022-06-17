@@ -21,9 +21,11 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.mercateo.spring.security.jwt.data.ClaimName;
 import com.mercateo.spring.security.jwt.token.claim.JWTClaim;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
@@ -43,24 +45,24 @@ public class JWTPrincipal implements UserDetails {
   private final Map<String, JWTClaim> claims;
 
   public JWTPrincipal(
-      long id,
-      String username,
-      String token,
-      List<? extends GrantedAuthority> authorities,
-      Map<String, JWTClaim> claims) {
+    long id,
+    String username,
+    String token,
+    List<? extends GrantedAuthority> authorities,
+    Map<String, JWTClaim> claims) {
     this.id = id;
     this.username = username;
     this.token = token;
-    this.authorities = authorities;
-    this.claims = claims;
+    this.authorities = Collections.unmodifiableList(authorities);
+    this.claims = Collections.unmodifiableMap(claims);
   }
 
   @SuppressWarnings("unused")
   public static JWTPrincipal fromContext() {
     final SecurityContext securityContext =
-        requireNonNull(SecurityContextHolder.getContext(), "no security context available");
+      requireNonNull(SecurityContextHolder.getContext(), "no security context available");
     final Authentication authentication =
-        requireNonNull(securityContext.getAuthentication(), "no authentication available");
+      requireNonNull(securityContext.getAuthentication(), "no authentication available");
     return (JWTPrincipal) authentication.getPrincipal();
   }
 
@@ -118,5 +120,19 @@ public class JWTPrincipal implements UserDetails {
 
   public Optional<JWTClaim> getClaim(ClaimName claimName) {
     return getClaim(claimName.getValue());
+  }
+
+  @Override
+  public String toString() {
+    final String authoritiesString =
+      authorities.stream()//
+        .filter(x -> x != null && x.getAuthority() != null)
+        .map(GrantedAuthority::getAuthority)
+        .collect(Collectors.joining(","));
+    return "JWTPrincipal{" +
+      "id=" + id +
+      ", username='" + username + '\'' +
+      ", authoritiesString=" + authoritiesString +
+      '}';
   }
 }
